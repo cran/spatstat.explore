@@ -1,6 +1,6 @@
-70d6449cfbf03f3b20b9f285174cadfb *DESCRIPTION
+7160644ad38fd804ae2edf59d014c906 *DESCRIPTION
 ac628ca0823de45e09bd55433f005da5 *NAMESPACE
-b5ac646c9e374b5f16f8ad2644147a9c *NEWS
+b923d893584aa2c81091c1954d07622b *NEWS
 3746c6b5f61ccbe4401ea0614186938b *R/FGmultiInhom.R
 f85ebd958263c02958f6bc1339b3509a *R/Fest.R
 6a6553b98f4929fbabbc24fbdfa7c5ce *R/First.R
@@ -89,7 +89,7 @@ aba4829868abf5130b72f8f5eaee0da8 *R/nncorr.R
 1ddc55fe21a5f54976da16fb1c691de4 *R/nnorient.R
 f65cf0d0651ae12a1d0a21b6f2f9315e *R/pairorient.R
 8b9fe3d8d7e8cd65ee1ed48ac996c752 *R/pairs.im.R
-0179b863461241f37305897126ac0ad3 *R/pcf.R
+eaa1a1b6cef932dbb52c1b9a3cc38c83 *R/pcf.R
 3f8c2f91edc0adb97a98463bb7984a66 *R/pcfinhom.R
 c76e896661080247e9b5e95e3d1cab0b *R/pcfmulti.R
 fcf71f98f9c00d6c92dffc4fc0461c1e *R/pcfmulti.inhom.R
@@ -129,7 +129,7 @@ f0e499074542e294c6653d82749dda5c *R/transect.R
 f69e6cd021b03289f2d962c648702622 *R/varblock.R
 95abec834b4d080fa0b611add9bac836 *R/wtdclosepair.R
 152bbf4b15996c2c583ad5578f14d45b *inst/CITATION
-2493ebb5c3c57f3b3daab53e6e14e8a7 *inst/doc/packagesizes.txt
+5e7dd7a7d1e90289c89b2f17e6108eeb *inst/doc/packagesizes.txt
 1d8d9afeacbb8e67e56abf455ebfe6d6 *man/CDF.Rd
 7035cca796f4e64b0b5089f25351b070 *man/Emark.Rd
 7b09687b285ee8d809969ab06106a5f4 *man/Extract.fasp.Rd
@@ -364,7 +364,7 @@ d2c35a9fcefe6c44f21f9547b4d31a0e *src/Knone.h
 c1937ccea286609c2306f1e373ba4ea8 *src/Krect.c
 707949facbb1443a42c08d275604ce41 *src/KrectBody.h
 cc107241adf0fc298d769ccd0a5bb71a *src/KrectFunDec.h
-f7ad99f0f44158cc2c9100e38cc1b185 *src/KrectIncrem.h
+3bfd60e497ecda68c4a9fd7d6bc26c7a *src/KrectIncrem.h
 08a4f417aed6959d94da3abc8bc55d0f *src/KrectV1.h
 92268e0af4222764daf4b106a12bbadc *src/KrectV2.h
 263f2296e12aee28f73dff92cef5dd61 *src/KrectV3.h
@@ -395,7 +395,7 @@ fcfed5f15f9e77b3510d0ce3656af745 *src/pcf3.c
 25c5e6136e56b859b65a37317a40811b *src/proto.h
 615b05e6d7796156017ceac8f9589df0 *src/raster.c
 668e8318237175ac56af1fcfdb41be29 *src/raster.h
-f89d74c4eb39c7c0743cb5296c40e257 *src/ripleybox.h
+b525f1b5e6754c376bc5107565b3dbcb *src/ripleybox.h
 215efc7557c41b941e3ac720a0277988 *src/ripleypoly.h
 64ceb36a9d82f91028f6e97815bd7e98 *src/scan.c
 09234550b699f0cc2bc71066519869b5 *src/segdens.c
