@@ -1,6 +1,6 @@
 Package: spatstat.explore
-Version: 3.0-5
-Date: 2022-11-10
+Version: 3.0-6
+Date: 2023-01-26
 Title: Exploratory Data Analysis for the 'spatstat' Family
 Authors@R: c(person("Adrian", "Baddeley", 
                     role = c("aut", "cre", "cph"),
@@ -55,9 +55,9 @@ Authors@R: c(person("Adrian", "Baddeley",
 	     person("Hangsheng", "Wang",
 	            role = "ctb"))
 Maintainer: Adrian Baddeley <Adrian.Baddeley@curtin.edu.au>
-Depends: R (>= 3.5.0), spatstat.data (>= 3.0), spatstat.geom (>= 3.0),
-        spatstat.random (>= 3.0), stats, graphics, grDevices, utils,
-        methods, nlme
+Depends: R (>= 3.5.0), spatstat.data (>= 3.0), spatstat.geom (>=
+        3.0-5), spatstat.random (>= 3.1), stats, graphics, grDevices,
+        utils, methods, nlme
 Imports: spatstat.utils (>= 3.0), spatstat.sparse (>= 3.0), goftest (>=
         1.2-2), Matrix, abind
 Suggests: sm, maptools (>= 0.9-9), gsl, locfit, spatial, fftwtools (>=
@@ -75,7 +75,7 @@ URL: http://spatstat.org/
 NeedsCompilation: yes
 ByteCompile: true
 BugReports: https://github.com/spatstat/spatstat.explore/issues
-Packaged: 2022-11-10 02:43:30 UTC; adrian
+Packaged: 2023-01-26 05:15:34 UTC; adrian
 Author: Adrian Baddeley [aut, cre, cph]
     (<https://orcid.org/0000-0001-9499-8382>),
   Rolf Turner [aut, cph] (<https://orcid.org/0000-0001-5521-5218>),
@@ -101,4 +101,4 @@ Author: Adrian Baddeley [aut, cre, cph]
   Rasmus Plenge Waagepetersen [ctb],
   Hangsheng Wang [ctb]
 Repository: CRAN
-Date/Publication: 2022-11-10 17:00:02 UTC
+Date/Publication: 2023-01-26 22:00:02 UTC

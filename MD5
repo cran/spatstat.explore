@@ -1,6 +1,6 @@
-7160644ad38fd804ae2edf59d014c906 *DESCRIPTION
+574c1e8fc8d2cbf08533d75e3139d2e6 *DESCRIPTION
 ac628ca0823de45e09bd55433f005da5 *NAMESPACE
-b923d893584aa2c81091c1954d07622b *NEWS
+c772336c0a05325a85a0f987fe40adad *NEWS
 3746c6b5f61ccbe4401ea0614186938b *R/FGmultiInhom.R
 f85ebd958263c02958f6bc1339b3509a *R/Fest.R
 6a6553b98f4929fbabbc24fbdfa7c5ce *R/First.R
@@ -23,7 +23,7 @@ e8e3ff8296e6bea222f808a02040cdd9 *R/Ksector.R
 ef20ad4c0a1d98a59f05de0fbd37b61c *R/adaptive.density.R
 948e229cfe013701e32cbf3690856c2d *R/allstats.R
 c2667393272d1b082100c877490f5eb0 *R/alltypes.R
-34b6ea5c3b0664fb86852043cd975929 *R/auc.R
+75cdd4196690f803dbf875ae580f593f *R/auc.R
 be0108592b3b5b9fec6751e10158e863 *R/bermantest.R
 edde9119c366c2e54fc6ecbf212d89cc *R/blur.R
 9e05d38aa26b0d4d58eab7df3abcf7b6 *R/bw.CvL.R
@@ -37,7 +37,7 @@ f8f23d8dd54bfacf38e27ed593b0d2a4 *R/bw.optim.R
 bec4040fb4a1ace18101597b42d10954 *R/bw.ppl.R
 c13e3ad08d78e1f397e769bd13bb0393 *R/bw.pplHeat.R
 7458e40ffda1e5eda31f1fcf78548f17 *R/bw.scott.R
-5da1b8e616795ca4d93b59ca361c7b31 *R/cdftest.R
+73c9c5546295cffce2d3a1debc4df862 *R/cdftest.R
 d3cdde6d1a744c2ae0aaffa5e6abe26e *R/circdensity.R
 428f9b0d9bf79a252922acf595fb78af *R/clarkevans.R
 2d42a4f493cee5afb4be080a0b8c54e1 *R/clusterset.R
@@ -54,7 +54,7 @@ acd39e6b59f599818906dd4dce8fba87 *R/densityAdaptiveKernel.R
 59e2a22c3418b16cd27b5597b042889a *R/distcdf.R
 fb70835d414406e402b5f41d2ac2f133 *R/edgeRipley.R
 cc7d82c1c51016ee40445013b1578f55 *R/edgeTrans.R
-9a805170c23d1fdd642d8c032e330e25 *R/envelope.R
+23349bb6181a59cf8c69674b91444774 *R/envelope.R
 d1f86ebbdcbbdd54f8d83d7537d4fb7e *R/envelope3.R
 dec1b6c9c0823ba09652beabbf488c0f *R/envelopeArray.R
 cb3666576fd571b8d449fc9f604b7993 *R/eval.fasp.R
@@ -128,8 +128,8 @@ f0e499074542e294c6653d82749dda5c *R/transect.R
 11fb0a6f8eabdd98f5edb09252312572 *R/twostage.R
 f69e6cd021b03289f2d962c648702622 *R/varblock.R
 95abec834b4d080fa0b611add9bac836 *R/wtdclosepair.R
-152bbf4b15996c2c583ad5578f14d45b *inst/CITATION
-5e7dd7a7d1e90289c89b2f17e6108eeb *inst/doc/packagesizes.txt
+2816edcd2b85cd9b7ea826d2a2e5dfdd *inst/CITATION
+e618f3b2b73c681efac9a318d6dd0ef1 *inst/doc/packagesizes.txt
 1d8d9afeacbb8e67e56abf455ebfe6d6 *man/CDF.Rd
 7035cca796f4e64b0b5089f25351b070 *man/Emark.Rd
 7b09687b285ee8d809969ab06106a5f4 *man/Extract.fasp.Rd
@@ -245,7 +245,7 @@ fc521e671850a941cc04e3030cf362a9 *man/dkernel.Rd
 08ea683bab597fe290ba8fe7bf1afdd8 *man/envelope.Rd
 0cc8bc4984ea85d93d847009e5777e48 *man/envelope.envelope.Rd
 9a3ab59545d42fd46d3d6358aefd1e2a *man/envelope.pp3.Rd
-bf073dfde281bd8f9e2ebf36c5cadb99 *man/envelopeArray.Rd
+9b1d8d18ff7bf0dfcaac3602b64e8bf9 *man/envelopeArray.Rd
 5136dda21c4ff534fa9324110ec9ca46 *man/eval.fasp.Rd
 72165f85587b5e894737dd919cf1df56 *man/eval.fv.Rd
 ff54d7f168c0a68983cdfbc5581ef6fd *man/fasp.object.Rd
@@ -272,7 +272,7 @@ c7d7782b860f8a3e0898fa2e07d1395b *man/laslett.Rd
 0176ad13dccf9db77f701a2cd73a7477 *man/localKinhom.Rd
 93bab536914b16f05aacee78271f9d28 *man/localpcf.Rd
 b4f5517fb2b539701a5a295054d849c5 *man/lohboot.Rd
-f4fb99b91143cfccf9dbb4b41832e15c *man/macros/defns.Rd
+e44d6aef08b44d833809c6cabced2dae *man/macros/defns.Rd
 24a1157a2c33f7f748c8bca55e760a61 *man/markconnect.Rd
 60d26430fde5febe378f2bd2d2949b40 *man/markcorr.Rd
 bb18727cba02e6e22e104c57e95382e3 *man/markcrosscorr.Rd
@@ -306,7 +306,7 @@ eee1a89824d8c8c93fcfa47deef6c4a8 *man/pcfinhom.Rd
 b46dedd26429ae5ab4f2bb42afd8e152 *man/plot.cdftest.Rd
 a0d08e22aa2a86c818b288e699126970 *man/plot.envelope.Rd
 2d140b816c265e69b313815b69bca723 *man/plot.fasp.Rd
-9029e7c13bfa6353940c54cc28014232 *man/plot.fv.Rd
+5a745b0db0b594c27e9459d570cfd0f4 *man/plot.fv.Rd
 3ef61cef6dcb869e4bdfa7de9b14ba78 *man/plot.laslett.Rd
 4be5e426df9bf6b93ab71ac270e35417 *man/plot.quadrattest.Rd
 11f340466da1c5a3eb1999864a377bb6 *man/plot.scan.test.Rd
@@ -405,7 +405,7 @@ b525f1b5e6754c376bc5107565b3dbcb *src/ripleybox.h
 39c4b4cba525955d7a920f85e3124fe8 *tests/funky.tab
 b51217edee1da528ea36a1b80ad13aff *tests/testsAtoC.R
 f009ec006769b9ec27e6de18a4cecbd8 *tests/testsD.R
-b054bde75b0631e9c4ad710904e020aa *tests/testsEtoF.R
+4448c56a86733ab498456811aa60fbf4 *tests/testsEtoF.R
 8c07812033a35b723116bbdab3d64f0d *tests/testsGtoJ.R
 1b0b102611b7b5d87cc4559c99e4f05b *tests/testsK.R
 aa5ffbe20b3d506eceb085928b774d72 *tests/testsL.R
