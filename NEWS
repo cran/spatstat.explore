@@ -1,4 +1,48 @@
 
+        CHANGES IN spatstat.explore VERSION 3.1-0
+
+OVERVIEW
+
+    o Pair correlation functions allow more control over smoothing parameters.
+    
+    o Improved support for one-dimensional smoothing kernels.
+
+    o Bug fixes in plot.fv.
+
+    o Internal improvements and bug fixes.
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o kernel.moment
+    New arguments 'mean' and 'sd'.
+    Computation accelerated for kernel='cosine' or 'optcosine'.
+    All cases are now computed using analytic expressions, for m <= 2.
+
+    o bw.abram
+    This function is now generic, with a method for class 'ppp'.
+
+    o pcfinhom, pcfdot.inhom, pcfcross.inhom
+    New arguments 'adjust.sigma' and 'adjust.bw' allow
+    separate adjustment of the one-dimensional smoothing bandwidth 'bw'
+    and the spatial smoothing bandwidth 'sigma'.
+    
+BUG FIXES
+
+    o plot.fv
+    When the argument 'log' was given, the plotted curves were
+    incorrectly clipped, or were missing altogether.
+    Fixed.
+    
+    o plot.fv
+    If 'add=TRUE', and if the existing plot was created using logarithmic axes,
+    the logarithmic scale was ignored.
+    Fixed.
+    
+    o plot.fv
+    Sometimes gave an obscure warning about 'rebound.owin',
+    when 'xlim' or 'ylim' was given.
+    Fixed.
+
         CHANGES IN spatstat.explore VERSION 3.0-6
 
 OVERVIEW

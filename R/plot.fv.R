@@ -1,7 +1,7 @@
 #
 #       plot.fv.R   (was: conspire.S)
 #
-#  $Revision: 1.133 $    $Date: 2022/02/06 10:42:20 $
+#  $Revision: 1.138 $    $Date: 2023/03/04 03:58:56 $
 #
 #
 
@@ -39,8 +39,12 @@ plot.fv <- local({
 
   pow10 <- function(x) { 10^x }
 
-  clip.to.usr <- function() {
+  clip.to.usr <- function(xlogscale=FALSE, ylogscale=FALSE) {
     usr <- par('usr')
+    if(xlogscale)
+      usr[1:2] <- 10^(usr[1:2])
+    if(ylogscale)
+      usr[3:4] <- 10^(usr[3:4])
     clip(usr[1], usr[2], usr[3], usr[4])
   }
   
@@ -68,8 +72,15 @@ plot.fv <- local({
 
     indata <- as.data.frame(x)
 
-    xlogscale <- (log %in% c("x", "xy", "yx"))
-    ylogscale <- (log %in% c("y", "xy", "yx"))
+    if(missing(log) && add) {
+      ## determine 'log' from current plot
+      xlogscale <- par('xlog')
+      ylogscale <- par('ylog')
+      log <- paste(c("x","y")[c(xlogscale, ylogscale)], collapse="")
+    } else {
+      xlogscale <- (log %in% c("x", "xy", "yx"))
+      ylogscale <- (log %in% c("y", "xy", "yx"))
+    }
 
     ## ---------------- determine plot formula ----------------
   
@@ -445,7 +456,7 @@ plot.fv <- local({
       miss2 <- !is.finite(shdata2)
       if(!any(broken <- (miss1 | miss2))) {
         ## single polygon
-        clip.to.usr()
+        clip.to.usr(xlogscale, ylogscale)
         polygon(xpoly, ypoly, border=shadecol, col=shadecol)
       } else {
         ## interrupted
@@ -456,7 +467,7 @@ plot.fv <- local({
                  with(z, {
                    xp <- c(rhsdata, rev(rhsdata))
                    yp <- c(shdata1, rev(shdata2))
-                   clip.to.usr()
+                   clip.to.usr(xlogscale, ylogscale)
                    polygon(xp, yp, border=shadecol, col=shadecol)
                  })
                })
@@ -487,7 +498,7 @@ plot.fv <- local({
     ## ----------------- plot lines ------------------------------
 
     for(i in allind) {
-      clip.to.usr()
+      clip.to.usr(xlogscale, ylogscale)
       lines(rhsdata, lhsdata[,i], lty=lty[i], col=col[i], lwd=lwd[i])
     }
 
@@ -635,6 +646,9 @@ assemble.plot.objects <- function(xlim, ylim, ..., lines=NULL, polygon=NULL) {
           n <- sum(ok)
         }
         segs.i <- psp(x.i[-n], y.i[-n], x.i[-1], y.i[-1], W, check=FALSE)
+        if(!all(inside.range(range(x.i), xlim))
+           || !all(inside.range(range(y.i), ylim)))
+          segs.i <- cliprect.psp(segs.i, W)
         objects <- append(objects, list(segs.i))        
       }
     }
@@ -647,8 +661,10 @@ assemble.plot.objects <- function(xlim, ylim, ..., lines=NULL, polygon=NULL) {
       pol <- with(pol, list(x=x[ok], y=y[ok]))
     if(Area.xypolygon(pol) < 0) pol <- lapply(pol, rev)
     P <- try(owin(poly=pol, xrange=xlim, yrange=ylim, check=FALSE))
-    if(!inherits(P, "try-error"))
+    if(!inherits(P, "try-error")) {
+      P <- intersect.owin(P, W)
       objects <- append(objects, list(P))
+    }
   }
   return(objects)
 }
@@ -659,6 +675,11 @@ findbestlegendpos <- local({
   bestlegendpos <- function(objects, show=FALSE, aspect=1, bdryok=TRUE,
                             preference="float", verbose=FALSE,
                             legendspec=NULL) {
+    if(any(vacuous <- sapply(objects, is.empty))) {
+      if(all(vacuous))
+        stop("All objects were empty")
+      objects <- objects[!vacuous]
+    }
     ## find bounding box
     W <- do.call(boundingbox, lapply(objects, as.rectangle))
     ## convert to common box
@@ -678,6 +699,9 @@ findbestlegendpos <- local({
     scaled.objects <- lapply(scaled.objects, rebound, rect=scaledW)
     ## pixellate the scaled objects
     pix.scal.objects <- lapply(scaled.objects, asma)
+    ## handle very tiny or thin objects
+    if(any(tiny <- sapply(pix.scal.objects, is.empty))) 
+      pix.scal.objects[tiny] <- lapply(scaled.objects[tiny], distmap)
     ## apply distance transforms in scaled space
     D1 <- distmap(pix.scal.objects[[1]])
     Dlist <- lapply(pix.scal.objects, distmap, xy=list(x=D1$xcol, y=D1$yrow))
