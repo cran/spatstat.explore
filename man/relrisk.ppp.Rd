@@ -15,8 +15,9 @@
            at = c("pixels", "points"),
            weights = NULL, varcov = NULL, 
            relative=FALSE,
-           adjust=1, edge=TRUE, diggle=FALSE, se=FALSE,
-           casecontrol=TRUE, control=1, case)
+           adjust=1, edge=TRUE, diggle=FALSE,
+           se=FALSE, wtype=c("value", "multiplicity"),
+           casecontrol=TRUE, control=1, case, fudge=0)
 }
 \arguments{
   \item{X}{
@@ -71,6 +72,11 @@
     Logical value indicating whether to compute standard errors
     as well.
   }
+  \item{wtype}{
+    Character string (partially matched) specifying how the weights
+    should be interpreted for the calculation of standard error.
+    See Details.
+  }
   \item{casecontrol}{
     Logical. Whether to treat a bivariate point pattern
     as consisting of cases and controls, and return only the
@@ -89,6 +95,12 @@
     This is an alternative to the argument \code{control}
     in a bivariate point pattern. 
     Ignored if there are more than 2 types of points.
+  }
+  \item{fudge}{
+    Optional. A single numeric value,
+    or a numeric vector with one entry for each type of point.
+    This value will be added to the estimates
+    of point process intensity, before calculation of the relative risk.
   }
 }
 \details{
@@ -230,6 +242,32 @@
   If \code{relative=FALSE}, the resulting values always lie between 0
   and 1. If \code{relative=TRUE}, the results are either non-negative
   numbers, or the values \code{Inf} or \code{NA}. 
+}
+\section{Standard error}{
+  If \code{se=TRUE}, the standard error of the estimate will also be
+  calculated. The calculation assumes a Poisson point process. 
+
+  If \code{weights} are given, then the calculation of standard error
+  depends on the interpretation of the weights. This is controlled by
+  the argument \code{wtype}.
+  \itemize{
+    \item
+    If \code{wtype="value"} (the default),
+    the weights are interpreted as numerical values observed
+    at the data locations. Roughly speaking,
+    standard errors are proportional to the absolute
+    values of the weights.
+    \item
+    If \code{wtype="multiplicity"} the weights are interpreted as
+    multiplicities so that a weight of 2 is equivalent to having a pair
+    of duplicated points at the data location. Roughly speaking,
+    standard errors are proportional
+    to the square roots of the weights. Negative weights are not
+    permitted.
+  }
+  The default rule is now \code{wtype="value"} but previous versions
+  of \code{relrisk.ppp} (in \pkg{spatstat.explore} versions
+  \code{3.1-0} and earlier) effectively used \code{wtype="multiplicity"}.
 }
 \seealso{
   There is another method \code{\link[spatstat.model]{relrisk.ppm}} for point process

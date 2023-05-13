@@ -3,7 +3,7 @@
 #
 #  Method for 'density' for point patterns
 #
-#  $Revision: 1.119 $    $Date: 2022/05/21 08:53:38 $
+#  $Revision: 1.132 $    $Date: 2023/04/02 00:56:06 $
 #
 
 # ksmooth.ppp <- function(x, sigma, ..., edge=TRUE) {
@@ -14,9 +14,11 @@
 density.ppp <- local({
   
 density.ppp <- function(x, sigma=NULL, ...,
-                        weights=NULL, edge=TRUE, varcov=NULL,
+                        weights=NULL, 
+                        edge=TRUE, varcov=NULL,
                         at="pixels", leaveoneout=TRUE,
-                        adjust=1, diggle=FALSE, se=FALSE, 
+                        adjust=1, diggle=FALSE,
+                        se=FALSE, wtype=c("value", "multiplicity"),
                         kernel="gaussian",
                         scalekernel=is.character(kernel),
                         positive=FALSE, verbose=TRUE) {
@@ -33,9 +35,6 @@ density.ppp <- function(x, sigma=NULL, ...,
   
   if(!identical(kernel, "gaussian")) {
     validate2Dkernel(kernel)
-    ## kernel is only partly implemented!
-    if(se)
-      stop("Standard errors are not implemented for non-Gaussian kernel")
     if(verbose && scalekernel &&
        (is.function(sigma) || (is.null(sigma) && is.null(varcov))))
       warning("Bandwidth selection will be based on Gaussian kernel")
@@ -54,10 +53,12 @@ density.ppp <- function(x, sigma=NULL, ...,
     weights <- NULL 
 
   if(se) {
-    # compute standard error
+    ## compute standard error
+    wtype <- match.arg(wtype)
     SE <- denspppSEcalc(x, sigma=sigma, varcov=varcov,
+                        kernel=kernel,
                         ...,
-                        weights=weights, edge=edge, at=output,
+                        weights=weights, wtype=wtype, edge=edge, at=output,
                         leaveoneout=leaveoneout, adjust=adjust,
                         diggle=diggle)
     if(positive) SE <- posify(SE)
@@ -205,32 +206,44 @@ divide.by.pixelarea <- function(x) {
 }
 
 denspppSEcalc <- function(x, sigma, varcov, ...,
-                          weights, edge, diggle, at) {
+                          kernel, weights, wtype, edge, diggle,
+                          at, leaveoneout=TRUE,
+                          gauss.is.special=TRUE, debug=FALSE) {
   ## Calculate standard error, rather than estimate
   nx <- npoints(x)
 
   single <- is.null(dim(weights))
+
+  weightspower <-
+    if(is.null(weights)) NULL else switch(wtype,
+                                          value        = weights^2,
+                                          multiplicity = weights)
+
+  if(!is.null(weights) && wtype == "multiplicity" && min(weights) < 0)
+    stop("Negative weights are not permitted when wtype='multiplicity'",
+         call.=FALSE)
   
   if(bandwidth.is.infinite(sigma)) {
     #' special case - uniform
-    totwt2 <- if(is.null(weights)) nx else
-              if(single) sum(weights^2) else colSums(weights^2)
-    if(!edge)
-      totwt2 <- 0 * totwt2
+    totwtpower <- if(is.null(weights)) nx else
+                  if(single) sum(weightspower) else colSums(weightspower)
+    if(!edge) {
+      ## infinite bandwidth without edge correction: estimate = variance = 0
+      totwtpower <- 0 * totwtpower
+    }
     W <- Window(x)
     A <- area.owin(W)
     switch(at,
            pixels = {
-             V <- solapply(totwt2/A, as.im, W=W, ...)
+             V <- solapply(totwtpower/A, as.im, W=W, ...)
              names(V) <- colnames(weights)
              if(single) V <- V[[1L]]
            },
            points = {
-             numerator <- rep(totwt2, each=nx)
+             numerator <- rep(totwtpower, each=nx)
              if(!single) numerator <- matrix(numerator, nrow=nx)
-             leaveoneout <- resolve.1.default(list(leaveoneout=TRUE), list(...))
              if(edge && leaveoneout) 
-               numerator <- numerator - (weights %orifnull% 1)^2
+               numerator <- numerator - (weightspower %orifnull% 1)
              V <- numerator/A
              if(!single) 
                colnames(V) <- colnames(weights)
@@ -238,43 +251,67 @@ denspppSEcalc <- function(x, sigma, varcov, ...,
     return(sqrt(V))
   }
 
-  ## Usual case
-  tau <- taumat <- NULL
-  if(is.null(varcov)) {
-    varconst <- 1/(4 * pi * prod(ensure2vector(sigma)))
-    tau <- sigma/sqrt(2)
+  ## Usual case: sigma or vcov is finite
+  ## Calculations involve the squared kernel
+  specialGauss <- gauss.is.special && identical(kernel, "gaussian")
+  if(!specialGauss) {
+    ## The square of the kernel will be computed inside second.moment.engine
+    kerpow <- 2
+    tau <- sigma
+    taumat <- varcov
+    varconst <- 1
   } else {
-    varconst <- 1/(4 * pi * sqrt(det(varcov)))
-    taumat <- varcov/2
+    ## Use the fact that the square of the Gaussian kernel
+    ## is a rescaled Gaussian kernel
+    kerpow <- 1
+    tau <- taumat <- NULL
+    if(is.null(varcov)) {
+      varconst <- 1/(4 * pi * prod(ensure2vector(sigma)))
+      tau <- sigma/sqrt(2)
+    } else {
+      varconst <- 1/(4 * pi * sqrt(det(varcov)))
+      taumat <- varcov/2
+    }
   }
+  
   ## Calculate edge correction weights
   if(edge) {
+    ## convolution of kernel with window
     edgeim <- second.moment.calc(x, sigma, what="edge", ...,
                                  varcov=varcov)
     if(diggle || at == "points") {
       edgeX <- safelookup(edgeim, x, warn=FALSE)
-      diggleX <- 1/edgeX
-      diggleX[!is.finite(diggleX)] <- 0
+      invmassX <- 1/edgeX
+      invmassX[!is.finite(invmassX)] <- 0
     }
     edgeim <- edgeim[Window(x), drop=FALSE]
   }
-  ## Perform smoothing
-  if(!edge) {
-    ## no edge correction
-    V <- density(x, sigma=tau, varcov=taumat, ...,
-                 weights=weights, edge=edge, diggle=diggle, at=at)
-  } else if(!diggle) {
-    ## edge correction e(u)
-    V <- density(x, sigma=tau, varcov=taumat, ...,
-                 weights=weights, edge=edge, diggle=diggle, at=at)
-    V <- if(at == "points") V * diggleX else imagelistOp(V, edgeim, "/")
-  } else {
-    ## Diggle edge correction e(x_i)
-    wts <- if(is.null(weights)) diggleX else (diggleX * weights)
-    V <- density(x, sigma=tau, varcov=taumat, ...,
-                 weights=wts, edge=edge, diggle=diggle, at=at)
+  
+  ## Calculate variance of sum of weighted contributions
+  dataVarianceWeights <-
+    if(!edge) {
+      ## no edge correction
+      weightspower
+    } else if(!diggle) {
+      ## uniform edge correction e(u)
+      weightspower
+    } else {
+      ## Jones-Diggle edge correction e(x_i) 
+      if(is.null(weightspower)) invmassX^2 else (weightspower * invmassX^2)
+    }
+
+  V <- density(x, sigma=tau, varcov=taumat, ..., kerpow=kerpow,
+               weights=dataVarianceWeights,
+               at=at, leaveoneout=leaveoneout,
+               edge=FALSE, diggle=FALSE)
+
+  if(edge && !diggle) {
+    ## uniform edge correction e(u): rescale
+    V <- if(at == "points") V * invmassX^2 else imagelistOp(V, edgeim^2, "/")
   }
-  V <- V * varconst
+
+  if(varconst != 1)
+    V <- V * varconst
   return(sqrt(V))
 }       
 
@@ -286,6 +323,7 @@ density.ppp
 densitypointsEngine <- function(x, sigma=NULL, ...,
                                 kernel="gaussian", 
                                 scalekernel=is.character(kernel),
+                                kerpow = 1,
                                 weights=NULL, edge=TRUE, varcov=NULL,
                                 leaveoneout=TRUE, diggle=FALSE,
                                 sorted=FALSE, spill=FALSE, cutoff=NULL,
@@ -296,6 +334,8 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
   if(is.character(kernel)) kernel <- match2DkernelName(kernel)
   isgauss <- identical(kernel, "gaussian")
 
+  nx <- npoints(x)
+  
   if(isgauss) {
     ## constant factor in Gaussian density
     if(is.null(varcov)) {
@@ -313,7 +353,6 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
   ## infinite bandwidth
   if(bandwidth.is.infinite(sigma)) {
     #' uniform estimate
-    nx <- npoints(x)
     single <- is.null(dim(weights))
     totwt <- if(is.null(weights)) nx else
              if(single) sum(weights) else colSums(weights)
@@ -341,7 +380,7 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
   if(debug)
     cat(paste("cutoff=", cutoff, "\n"))
 
-  if(leaveoneout && npoints(x) > 1) {
+  if(leaveoneout && nx > 1) {
     ## ensure each point has its closest neighbours within the cutoff
     nndmax <- maxnndist(x)
     cutoff <- max(2 * nndmax, cutoff)
@@ -359,6 +398,8 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
   } else {
     k <- 1L
     stopifnot(length(weights) == npoints(x) || length(weights) == 1L)
+    if(length(weights) == 1L)
+      weights <- rep(weights, nx)
   }
   # evaluate edge correction weights at points 
   if(edge) {
@@ -397,24 +438,27 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
      spatstat.options("densityTransform") && spatstat.options("densityC")) {
     ## .................. experimental C code .....................
     if(debug)
-      cat('Using experimental code!\n')
+      cat('Using experimental code G*denspt\n')
     npts <- npoints(x)
     result <- if(k == 1L) numeric(npts) else matrix(, npts, k)
     xx <- x$x
     yy <- x$y
+    gaussconstpow <- gaussconst^kerpow
     ## transform to standard coordinates
     if(is.null(varcov)) {
-      xx <- xx/(sqrt(2) * sigma)
-      yy <- yy/(sqrt(2) * sigma)
+      sigroot2 <- sqrt(2/kerpow) * sigma
+      xx <- xx/sigroot2
+      yy <- yy/sigroot2
     } else {
-      xy <- cbind(xx, yy) %*% matrixsqrt(Sinv/2)
+      xy <- cbind(xx, yy) %*% matrixsqrt(Sinv * (kerpow/2))
       xx <- xy[,1L]
       yy <- xy[,2L]
       sorted <- FALSE
     }
     ## cutoff in standard coordinates
     sd <- sigma %orifnull% sqrt(min(eigen(varcov)$values))
-    cutoff <- cutoff/(sqrt(2) * sd)
+    sdscale <- sqrt(2/kerpow) * sd
+    cutoff <- cutoff/sdscale
     ## sort into increasing order of x coordinate (required by C code)
     if(!sorted) {
       oo <- fave.order(xx)
@@ -430,7 +474,7 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
                result  = as.double(double(npts)),
                PACKAGE="spatstat.explore")
       if(sorted) result <- zz$result else result[oo] <- zz$result
-      result <- result * gaussconst
+      result <- result * gaussconstpow
     } else if(k == 1L) {
       wtsort <- if(sorted) weights else weights[oo]
       zz <- .C(SE_Gwtdenspt,
@@ -442,7 +486,7 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
                result  = as.double(double(npts)),
                PACKAGE="spatstat.explore")
       if(sorted) result <- zz$result else result[oo] <- zz$result 
-      result <- result * gaussconst
+      result <- result * gaussconstpow
     } else {
       ## matrix of weights
       wtsort <- if(sorted) weights else weights[oo, ]
@@ -457,14 +501,17 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
                  PACKAGE="spatstat.explore")
         if(sorted) result[,j] <- zz$result else result[oo,j] <- zz$result
       }
-      result <- result * gaussconst
+      result <- result * gaussconstpow
     }
-  } else if(isgauss && spatstat.options("densityC")) {
+  } else if(isgauss && (kerpow %in% c(1,2)) && spatstat.options("densityC")) {
     # .................. C code ...........................
     if(debug)
-      cat('Using standard code.\n')
+      cat('Using standard C code *denspt.\n')
     npts <- npoints(x)
     result <- if(k == 1L) numeric(npts) else matrix(, npts, k)
+    squared <- (kerpow == 2)
+    if(squared && debug)
+      cat('Squared kernel.\n')
     # sort into increasing order of x coordinate (required by C code)
     if(sorted) {
       xx <- x$x
@@ -483,6 +530,7 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
                  y       = as.double(yy),
                  rmaxi   = as.double(cutoff),
                  sig     = as.double(sigma),
+                 squared = as.integer(squared),
                  result  = as.double(double(npts)),
                  PACKAGE="spatstat.explore")
         if(sorted) result <- zz$result else result[oo] <- zz$result 
@@ -495,6 +543,7 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
                  rmaxi   = as.double(cutoff),
                  sig     = as.double(sigma),
                  weight  = as.double(wtsort),
+                 squared = as.integer(squared),
                  result  = as.double(double(npts)),
                  PACKAGE="spatstat.explore")
         if(sorted) result <- zz$result else result[oo] <- zz$result 
@@ -509,6 +558,7 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
                    rmaxi   = as.double(cutoff),
                    sig     = as.double(sigma),
                    weight  = as.double(wtsort[,j]),
+                   squared = as.integer(squared),
                    result  = as.double(double(npts)),
                    PACKAGE="spatstat.explore")
           if(sorted) result[,j] <- zz$result else result[oo,j] <- zz$result
@@ -525,6 +575,7 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
                  rmaxi   = as.double(cutoff),
                  detsigma = as.double(detSigma),
                  sinv    = as.double(flatSinv),
+                 squared = as.integer(squared),
                  result  = as.double(double(npts)),
                  PACKAGE="spatstat.explore")
         if(sorted) result <- zz$result else result[oo] <- zz$result 
@@ -539,6 +590,7 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
                  detsigma = as.double(detSigma),
                  sinv    = as.double(flatSinv),
                  weight  = as.double(wtsort),
+                 squared = as.integer(squared),
                  result   = as.double(double(npts)),
                  PACKAGE="spatstat.explore")
         if(sorted) result <- zz$result else result[oo] <- zz$result 
@@ -554,6 +606,7 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
                    detsigma = as.double(detSigma),
                    sinv    = as.double(flatSinv),
                    weight  = as.double(wtsort[,j]),
+                   squared = as.integer(squared),
                    result  = as.double(double(npts)),
                    PACKAGE="spatstat.explore")
           if(sorted) result[,j] <- zz$result else result[oo,j] <- zz$result 
@@ -562,6 +615,8 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
     }
   } else {
     # ..... interpreted code .........................................
+    if(debug)
+      cat('Using interpreted code.\n')
     close <- closepairs(x, cutoff)
     i <- close$i
     j <- close$j
@@ -583,6 +638,14 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
       contrib <- evaluate2Dkernel(kernel, close$dx, close$dy,
                                   sigma=sigma, varcov=varcov,
                                   scalekernel=scalekernel, ...)
+    }
+    ## raise kernel density value to a power (for variance calculations etc)
+    if(kerpow != 1) {
+      if(debug) {
+        if(kerpow == 2) cat('Squaring the kernel values\n') else
+        splat('Raising kernel values to', ordinal(kerpow), 'power')
+      }
+      contrib <- contrib^kerpow
     }
     ## sum (weighted) contributions
     ## query point i, data point j
@@ -609,6 +672,10 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
       self <- evaluate2Dkernel(kernel, 0, 0, sigma=sigma, varcov=varcov,
                                scalekernel=scalekernel, ...)
     }
+    ## raise kernel density value to a power (for variance calculations etc)
+    if(kerpow != 1)
+      self <- self^kerpow
+    ## weighted
     if(!is.null(weights))
       self <- self * weights
     result <- result + self
@@ -655,6 +722,7 @@ densitypointsEngine <- function(x, sigma=NULL, ...,
   # tack on bandwidth
   attr(result, "sigma") <- sigma
   attr(result, "varcov") <- varcov
+  attr(result, "kerpow") <- kerpow
   # 
   return(result)
 }
@@ -730,10 +798,16 @@ densitycrossEngine <- function(Xdata, Xquery, sigma=NULL, ...,
                                scalekernel=is.character(kernel),
                                weights=NULL, edge=TRUE, varcov=NULL,
                                diggle=FALSE,
-                               sorted=FALSE, cutoff=NULL) {
+                               sorted=FALSE, cutoff=NULL,
+                               se=FALSE, kerpow=1) {
   validate2Dkernel(kernel)
   if(is.character(kernel)) kernel <- match2DkernelName(kernel)
   isgauss <- identical(kernel, "gaussian") && scalekernel
+
+  if(se)
+    warning("Standard errors are not yet supported", call.=FALSE)
+  if(kerpow != 1)
+    warning("Powers of the kernel are not yet supported", call.=FALSE)
 
   if(length(weights) == 0 || (!is.null(dim(weights)) && nrow(weights) == 0))
     weights <- NULL
@@ -870,6 +944,7 @@ densitycrossEngine <- function(Xdata, Xquery, sigma=NULL, ...,
                  yd      = as.double(yd),
                  rmaxi   = as.double(cutoff),
                  sig     = as.double(sigma),
+                 squared = as.integer(FALSE),
                  result  = as.double(double(nquery)),
                  PACKAGE="spatstat.explore")
         if(sorted) result <- zz$result else result[ooq] <- zz$result 
@@ -885,6 +960,7 @@ densitycrossEngine <- function(Xdata, Xquery, sigma=NULL, ...,
                  wd      = as.double(wtsort),
                  rmaxi   = as.double(cutoff),
                  sig     = as.double(sigma),
+                 squared = as.integer(FALSE),
                  result  = as.double(double(nquery)),
                  PACKAGE="spatstat.explore")
         if(sorted) result <- zz$result else result[ooq] <- zz$result 
@@ -902,6 +978,7 @@ densitycrossEngine <- function(Xdata, Xquery, sigma=NULL, ...,
                    wd      = as.double(wtsort[,j]),
                    rmaxi   = as.double(cutoff),
                    sig     = as.double(sigma),
+                   squared = as.integer(FALSE),
                    result  = as.double(double(nquery)),
                    PACKAGE="spatstat.explore")
           if(sorted) result[,j] <- zz$result else result[ooq,j] <- zz$result
@@ -915,32 +992,34 @@ densitycrossEngine <- function(Xdata, Xquery, sigma=NULL, ...,
       flatSinv <- as.vector(t(Sinv))
       if(is.null(weights)) {
         zz <- .C(SE_acrdenspt,
-                 nquery  = as.integer(nquery),
-                 xq      = as.double(xq),
-                 yq      = as.double(yq),
-                 ndata   = as.integer(ndata),
-                 xd      = as.double(xd),
-                 yd      = as.double(yd),
-                 rmaxi   = as.double(cutoff),
+                 nquery   = as.integer(nquery),
+                 xq       = as.double(xq),
+                 yq       = as.double(yq),
+                 ndata    = as.integer(ndata),
+                 xd       = as.double(xd),
+                 yd       = as.double(yd),
+                 rmaxi    = as.double(cutoff),
                  detsigma = as.double(detSigma),
-                 sinv    = as.double(flatSinv),
-                 result  = as.double(double(nquery)),
+                 sinv     = as.double(flatSinv),
+                 squared  = as.integer(FALSE),
+                 result   = as.double(double(nquery)),
                  PACKAGE="spatstat.explore")
         if(sorted) result <- zz$result else result[ooq] <- zz$result 
       } else if(k == 1L) {
         ## vector of weights
         wtsort <- if(sorted) weights else weights[ood]
         zz <- .C(SE_awtcrdenspt,
-                 nquery  = as.integer(nquery),
-                 xq      = as.double(xq),
-                 yq      = as.double(yq),
-                 ndata   = as.integer(ndata),
-                 xd      = as.double(xd),
-                 yd      = as.double(yd),
-                 wd      = as.double(wtsort),
-                 rmaxi   = as.double(cutoff),
+                 nquery   = as.integer(nquery),
+                 xq       = as.double(xq),
+                 yq       = as.double(yq),
+                 ndata    = as.integer(ndata),
+                 xd       = as.double(xd),
+                 yd       = as.double(yd),
+                 wd       = as.double(wtsort),
+                 rmaxi    = as.double(cutoff),
                  detsigma = as.double(detSigma),
-                 sinv    = as.double(flatSinv),
+                 sinv     = as.double(flatSinv),
+                 squared  = as.integer(FALSE),
                  result   = as.double(double(nquery)),
                  PACKAGE="spatstat.explore")
         if(sorted) result <- zz$result else result[ooq] <- zz$result 
@@ -949,17 +1028,18 @@ densitycrossEngine <- function(Xdata, Xquery, sigma=NULL, ...,
         wtsort <- if(sorted) weights else weights[ood, ]
         for(j in 1:k) {
           zz <- .C(SE_awtcrdenspt,
-                   nquery  = as.integer(nquery),
-                   xq      = as.double(xq),
-                   yq      = as.double(yq),
-                   ndata   = as.integer(ndata),
-                   xd      = as.double(xd),
-                   yd      = as.double(yd),
-                   wd      = as.double(wtsort[,j]),
-                   rmaxi   = as.double(cutoff),
+                   nquery   = as.integer(nquery),
+                   xq       = as.double(xq),
+                   yq       = as.double(yq),
+                   ndata    = as.integer(ndata),
+                   xd       = as.double(xd),
+                   yd       = as.double(yd),
+                   wd       = as.double(wtsort[,j]),
+                   rmaxi    = as.double(cutoff),
                    detsigma = as.double(detSigma),
-                   sinv    = as.double(flatSinv),
-                   result  = as.double(double(nquery)),
+                   sinv     = as.double(flatSinv),
+                   squared  = as.integer(FALSE),
+                   result   = as.double(double(nquery)),
                    PACKAGE="spatstat.explore")
           if(sorted) result[,j] <- zz$result else result[ooq,j] <- zz$result 
         }

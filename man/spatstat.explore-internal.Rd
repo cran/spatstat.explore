@@ -120,6 +120,7 @@
 \alias{print.quadrattest}
 \alias{print.rat}
 \alias{print.Smoothfun}       
+\alias{print.summary.bw.optim}
 \alias{print.summary.ssf}
 \alias{quadrat.testEngine}
 \alias{ratfv}
@@ -168,6 +169,7 @@
 \alias{spatialCovariateEvidence.ppp}
 \alias{sphere.volume}
 \alias{summary.envelope}
+\alias{summary.bw.optim}
 \alias{tweak.fv.entry}
 \alias{tweak.ratfv.entry}
 \alias{twostage.test}
@@ -228,9 +230,10 @@ Deviation(x, ref, leaveout, n, xi)
 densitycrossEngine(Xdata, Xquery, sigma, \dots,
                     kernel, scalekernel,
                     weights, edge, varcov,
-                    diggle, sorted, cutoff)
+                    diggle, sorted, cutoff,
+                    se, kerpow)
 densitypointsEngine(x, sigma, \dots,
-                    kernel, scalekernel,
+                    kernel, scalekernel, kerpow,
                     weights, edge, varcov,
                     leaveoneout, diggle, sorted, spill, cutoff,
                     debug)
@@ -268,11 +271,12 @@ envelopeTest(X, \dots, exponent, alternative,
   type, alternative, scale, clamp, csr, use.theory, nrank, ginterval, nSD,
   savefuns, check, Yname, do.pwrong, weights, precomputed, gaveup)
 evaluateCovariate(covariate, locations, \dots)
-evaluateCovariateAtPixels(covariate, locations, \dots, types, eps, dimyx)
+evaluateCovariateAtPixels(covariate, locations, \dots,
+                          types, eps, dimyx, rule.eps)
 evaluateCovariateAtPoints(covariate, locations, \dots, allow.column)
 evaluate2Dkernel(kernel, x, y, sigma, varcov, \dots, scalekernel)
-ExpSmoothLog(X, \dots, at, weights)
-exactppm(X, baseline, \dots, subset, eps, dimyx)
+ExpSmoothLog(X, \dots, at, weights, se)
+exactppm(X, baseline, \dots, subset, eps, dimyx, rule.eps)
 extractAtomicQtests(x)
 fasp(fns, which, formulae, dataname, title, rowNames, colNames, checkfv)
 f3engine(x, y, z, box, vside, range, nval, correction)
@@ -314,7 +318,7 @@ localpcfengine(X, \dots, delta, rmax, nr, stoyan, lambda, rvalue)
 localpcfmatrix(X, i, \dots, lambda, delta, rmax, nr, stoyan)
 lookup2DkernelInfo(kernel)
 makefvlabel(op, accent, fname, sub, argname)
-maskLaslett(X, \dots, eps, dimyx, xy, oldX, verbose, plotit)
+maskLaslett(X, \dots, eps, dimyx, xy, rule.eps, oldX, verbose, plotit)
 match.kernel(kernel)
 match2DkernelName(kernel)
 mctestSigtraceEngine(R, devdata, devsim, \dots,
@@ -335,9 +339,9 @@ pcfmulti.inhom(X, I, J, lambdaI, lambdaJ, \dots,
 \method{plot}{bw.optim}(x, \dots, showopt, optargs)
 \method{plot}{localpcfmatrix}(x, \dots)
 \method{plot}{plotpairsim}(x, \dots)
-\method{plot}{spatialcdf}(x, \dots, xlab, ylab)
+\method{plot}{spatialcdf}(x, \dots, xlab, ylab, do.points)
 polyLaslett(X, \dots, oldX, verbose, plotit)
-\method{predict}{exactppm}(object, locations, \dots, eps, dimyx)
+\method{predict}{exactppm}(object, locations, \dots, eps, dimyx, rule.eps)
 prefixfv(x, tagprefix, descprefix, lablprefix, whichtags)
 \method{print}{bw.frac}(x, \dots)
 \method{print}{bw.optim}(x, \dots)
@@ -354,6 +358,7 @@ prefixfv(x, tagprefix, descprefix, lablprefix, whichtags)
 \method{print}{quadrattest}(x, \dots)
 \method{print}{rat}(x, \dots)
 \method{print}{Smoothfun}(x, \dots)
+\method{print}{summary.bw.optim}(x, \dots, digits)
 \method{print}{summary.ssf}(x, \dots)
 quadrat.testEngine(X, nx, ny, alternative, method, conditional, CR, 
      \dots, nsim, Xcount, xbreaks, ybreaks, tess, fit, df.est, Xname, fitname)
@@ -407,7 +412,8 @@ scanBinomLRTS(nZ, nG, muZ, muG, alternative)
 second.moment.calc(x, sigma, edge, what, \dots,
                    varcov, expand, obswin, npts, debug)
 second.moment.engine(x, sigma, edge, what, \dots,
-      kernel, scalekernel, obswin, varcov, npts, debug, fastgauss)
+      kernel, scalekernel, kerpow,
+      obswin, varcov, npts, debug, fastgauss)
 sewpcf(d, w, denargs, lambda2area, divisor)
 sewsmod(d, ff, wt, Ef, rvals, method="smrep", \dots, nwtsteps=500)
 \method{shift}{quadrattest}(X, \dots)
@@ -422,17 +428,18 @@ smoothpointsEngine(x, values, sigma, \dots,
 spatialCDFframe(model, covariate, \dots, jitter, covariateAtPoints,
                 make.quantile.function)
 spatialCDFtest(model, covariate, test, \dots,
-         dimyx, eps, interpolate, jitter,
+         dimyx, eps, rule.eps, interpolate, jitter,
          nsim, verbose, modelname, covname, dataname)
 spatialCDFtestCalc(fra, test, \dots, details)
 spatialCovariateEvidence(model, covariate, \dots)
 \method{spatialCovariateEvidence}{exactppm}(model, covariate, \dots, lambdatype,
-          dimyx, eps, interpolate, jitter, jitterfactor,
+          dimyx, eps, rule.eps, interpolate, jitter, jitterfactor,
           modelname, covname, dataname, subset, clip.predict) 
 \method{spatialCovariateEvidence}{ppp}(model, covariate, \dots, lambdatype,
-          dimyx, eps, interpolate, jitter, jitterfactor,
+          dimyx, eps, rule.eps, interpolate, jitter, jitterfactor,
           modelname, covname, dataname, subset, clip.predict)
 sphere.volume(range, nval = 10)
+\method{summary}{bw.optim}(object, \dots)
 \method{summary}{envelope}(object,\dots)
 tweak.fv.entry(x, current.tag, new.labl, new.desc, new.tag)
 tweak.ratfv.entry(x, \dots)

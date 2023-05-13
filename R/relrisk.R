@@ -3,7 +3,7 @@
 #
 #   Estimation of relative risk
 #
-#  $Revision: 1.55 $  $Date: 2022/11/03 11:08:33 $
+#  $Revision: 1.67 $  $Date: 2023/03/21 07:06:28 $
 #
 
 relrisk <- function(X, ...) UseMethod("relrisk")
@@ -14,8 +14,9 @@ relrisk.ppp <- local({
                           at=c("pixels", "points"),
                           weights = NULL, varcov=NULL, 
                           relative=FALSE,
-                          adjust=1, edge=TRUE, diggle=FALSE, se=FALSE,
-                          casecontrol=TRUE, control=1, case) {
+                          adjust=1, edge=TRUE, diggle=FALSE,
+                          se=FALSE, wtype=c("value", "multiplicity"),
+                          casecontrol=TRUE, control=1, case, fudge=0) {
     stopifnot(is.ppp(X))
     stopifnot(is.multitype(X))
     control.given <- !missing(control)
@@ -44,6 +45,18 @@ relrisk.ppp <- local({
                     if(ntypes==2) "casecontrol=FALSE" else
                     "there are more than 2 types of points"))
     }
+    ## fudge constant
+    if(missing(fudge) || is.null(fudge)) {
+      fudge <- rep(0, ntypes)
+    } else {
+      check.nvector(fudge, ntypes,
+                    things="types of points", oneok=TRUE, vname="fudge")
+      stopifnot(all(fudge >= 0))
+      if(length(fudge) == 1)
+        fudge <- rep(fudge, ntypes)
+    }
+    ## initialise error report
+    uhoh <- NULL
     ## prepare for analysis
     Y <- split(X) 
     splitweights <- if(weighted) split(weights, marx) else rep(list(NULL), ntypes)
@@ -65,16 +78,37 @@ relrisk.ppp <- local({
     tinythresh <- 8 * .Machine$double.eps
     ## 
     if(se) {
-      ## determine other bandwidth for variance estimation
+      ## standard error calculation
+      wtype <- match.arg(wtype)
+      weightspower <-
+        if(is.null(weights)) NULL else  switch(wtype,
+                                               value        = weights^2,
+                                               multiplicity = weights)
+      if(!is.null(weights) && wtype == "multiplicity" && min(weights) < 0)
+        stop("Negative weights are not permitted when wtype='multiplicity'",
+             call.=FALSE)
+      ## determine smoothing parameters for variance calculation
       VarPars <- SmoothPars
-      if(bandwidth.is.infinite(sigma)) {
+      VarPars$edge <- VarPars$diggle <- FALSE
+      kernel <- SmoothPars$kernel %orifnull% "gaussian"
+      if(!identical(kernel, "gaussian")) {
+        ## Any kernel other than Gaussian.
+        ## The square of the kernel will be computed inside second.moment.engine
+        VarPars$kerpow <- 2
         varconst <- 1
-      } else if(is.null(varcov)) {
-        varconst <- 1/(4 * pi * prod(sigma))
-        VarPars$sigma <- sigma/sqrt(2)
       } else {
-        varconst <- 1/(4 * pi * sqrt(det(varcov)))
-        VarPars$varcov <- varcov/2
+        ## Gaussian kernel.
+        ## Use the fact that the square of the Gaussian kernel
+        ## is a rescaled Gaussian kernel.
+        if(bandwidth.is.infinite(sigma)) {
+          varconst <- 1
+        } else if(is.null(varcov)) {
+          varconst <- 1/(4 * pi * prod(sigma))
+          VarPars$sigma <- sigma/sqrt(2)
+        } else {
+          varconst <- 1/(4 * pi * sqrt(det(varcov)))
+          VarPars$varcov <- varcov/2
+        }
       }
       if(edge) {
         ## evaluate edge correction weights
@@ -82,8 +116,8 @@ relrisk.ppp <- local({
                           append(list(x=uX, what="edge"), SmoothPars))
         if(diggle || at == "points") {
           edgeX <- safelookup(edgeim, uX, warn=FALSE)
-          diggleX <- 1/edgeX
-          diggleX[!is.finite(diggleX)] <- 0
+          invmassX <- 1/edgeX
+          invmassX[!is.finite(invmassX)] <- 0
         }
         edgeim <- edgeim[Window(X), drop=FALSE]
       }
@@ -97,34 +131,47 @@ relrisk.ppp <- local({
              Deach <- do.call(density.splitppp,
                               append(list(x=Y, weights=splitweights),
                                      SmoothPars))
+             if(any(fudge != 0)) {
+               ## add constant to intensity estimates
+               Deach <- as.imlist(mapply("+", Deach, as.list(fudge),
+                                         SIMPLIFY=FALSE))
+             }
              ## compute intensity estimate for unmarked pattern
              Dall <- im.apply(Deach, sum, check=FALSE)
              ## WAS: Dall <- Reduce("+", Deach)
              ## variance terms
              if(se) {
-               if(!edge) {
-                 ## no edge correction
-                 Veach <- do.call(density.splitppp,
-                                  append(list(x=Y, weights=splitweights),
-                                         VarPars))
-               } else if(!diggle) {
-                 ## edge correction e(u)
-                 Veach <- do.call(density.splitppp,
-                                  append(list(x=Y, weights=splitweights),
-                                         VarPars))
+               ## weights on each data point for variance calculation
+               VarWeights <-
+                 if(!edge) {
+                   ## no edge correction
+                   weightspower
+                 } else if(!diggle) {
+                   ## uniform edge correction e(u)
+                   weightspower
+                 } else {
+                   ## Jones-Diggle edge correction e(x_i)
+                   if(weighted) {invmassX^2 * weightspower} else invmassX^2
+                 }
+               VarWeightsSplit <-
+                 if(weighted) split(VarWeights, marx) else NULL
+
+               ## Compute variance of sum of weighted contributions
+               Veach <- do.call(density.splitppp,
+                                append(list(x=Y,
+                                            weights=VarWeightsSplit),
+                                            VarPars))
+                                
+               if(edge && !diggle) {
+                 ## uniform edge correction e(u): rescale
+                 Veach <- imagelistOp(Veach, edgeim^2, "/")
                  #' Ops.imlist not yet working
-                 Veach <- imagelistOp(Veach, edgeim, "/")
-               } else {
-                 ## Diggle edge correction e(x_i)
-                 diggweights <- if(weighted) { diggleX * weights } else diggleX
-                 Veach <- as.solist(mapply(density.ppp,
-                                           x=Y,
-                                           weights=split(diggweights, marx),
-                                           MoreArgs=VarPars,
-                                           SIMPLIFY=FALSE))
                }
+
+               if(varconst != 1) 
+                 Veach <- imagelistOp(Veach, varconst, "*")
                #' Ops.imlist not yet working
-               Veach <- imagelistOp(Veach, varconst, "*")
+
                Vall <- im.apply(Veach, sum, check=FALSE)
                ## WAS:   Vall <- Reduce("+", Veach)
              }
@@ -135,32 +182,44 @@ relrisk.ppp <- local({
              dumm <- matrix(0, npts, ntypes)
              dumm[cbind(seq_len(npts), imarks)] <- 1
              colnames(dumm) <- types
-             if(weighted) dumm <- dumm * weights
+             dummweights <- if(weighted) dumm * weights else dumm
+             dummweightspower <- if(weighted) dumm * weightspower else dumm
              Deach <- do.call(density.ppp,
-                              append(list(x=uX, weights=dumm),
+                              append(list(x=uX, weights=dummweights),
                                      SmoothPars))
+             ## add constant to intensity estimates
+             if(any(fudge != 0)) 
+               Deach <- Deach + matrix(fudge[col(Deach)],
+                                       nrow=nrow(Deach), ncol=ncol(Deach))
              ## compute intensity estimate for unmarked pattern
              Dall <- rowSums(Deach)
+
              ## variance terms
              if(se) {
-               if(!edge) {
-                 ## no edge correction
-                 Veach <- do.call(density.ppp,
-                                  append(list(x=uX, weights=dumm),
-                                         VarPars))
-               } else if(!diggle) {
-                 ## edge correction e(u)
-                 Veach <- do.call(density.ppp,
-                                  append(list(x=uX, weights=dumm),
-                                         VarPars))
-                 Veach <- Veach * diggleX
-               } else {
-                 ## Diggle edge correction e(x_i)
-                 Veach <- do.call(density.ppp,
-                                  append(list(x=uX, weights=dumm * diggleX),
-                                         VarPars))
+               ## weights attached to data points for variance calculation
+               VarWeights <-
+                 if(!edge) {
+                   ## no edge correction
+                   dummweightspower
+                 } else if(!diggle) {
+                   ## uniform edge correction e(u)
+                   dummweightspower
+                 } else {
+                   ## Jones-Diggle edge correction e(x_i)
+                   dummweightspower * invmassX^2
+                 }
+               ## compute sum of weighted contributions
+               Veach <- do.call(density.ppp,
+                                append(list(x=uX, weights=VarWeights),
+                                       VarPars))
+
+               if(edge && !diggle) {
+                 ## uniform edge correction e(u)
+                 Veach <- Veach * invmassX^2
                }
-               Veach <- Veach * varconst
+
+               if(varconst != 1)
+                 Veach <- Veach * varconst
                Vall <- rowSums(Veach)
              }
            })
@@ -199,12 +258,16 @@ relrisk.ppp <- local({
                ## compute probability of case
                Dcase <- Deach[[icase]]
                pcase <- Dcase/Dall
-               dodgy <- (Dall < tinythresh)
                ## correct small numerical errors
                pcase <- clamp01(pcase)
                ## trap NaN values, and similar
+               dodgy <- (Dall < tinythresh)
                nbg <- badvalues(pcase) | really(dodgy)
                if(any(nbg)) {
+                 warning(paste("Numerical underflow detected:",
+                               "sigma is probably too small"),
+                         call.=FALSE)
+                 uhoh <- unique(c(uhoh, "underflow"))
                  ## apply l'Hopital's rule:
                  ##     p(case) = 1{nearest neighbour is case}
                  distcase <- distmap(Y[[icase]], xy=pcase)
@@ -238,11 +301,15 @@ relrisk.ppp <- local({
              points={
                ## compute probability of case
                pcase <- Deach[,icase]/Dall
-               dodgy <- (Dall < tinythresh)
                ## correct small numerical errors
                pcase <- clamp01(pcase)
                ## trap NaN values
+               dodgy <- (Dall < tinythresh)
                if(any(nbg <- badvalues(pcase) | really(dodgy))) {
+                 warning(paste("Numerical underflow detected:",
+                               "sigma is probably too small"),
+                         call.=FALSE)
+                 uhoh <- unique(c(uhoh, "underflow"))
                  ## apply l'Hopital's rule
                  nntype <- imarks[nnwhich(X)]
                  pcase[nbg] <- as.integer(nntype[nbg] == icase)
@@ -284,14 +351,18 @@ relrisk.ppp <- local({
              pixels={
                #' Ops.imagelist not yet working
                probs <- imagelistOp(Deach, Dall, "/")
-               dodgy <- (Dall < tinythresh)
                ## correct small numerical errors
                probs <- as.solist(lapply(probs, clamp01))
                ## trap NaN values
                nbg <- lapply(probs, badvalues)
                nbg <- Reduce("|", nbg)
+               dodgy <- (Dall < tinythresh)
                nbg <- nbg | really(dodgy)
                if(any(nbg)) {
+                 warning(paste("Numerical underflow detected:",
+                               "sigma is probably too small"),
+                         call.=FALSE)
+                 uhoh <- unique(c(uhoh, "underflow"))
                  ## apply l'Hopital's rule
                  distX <- distmap(X, xy=Dall)
                  whichnn <- attr(distX, "index")
@@ -336,13 +407,17 @@ relrisk.ppp <- local({
              },
              points = {
                probs <- Deach/Dall
-               dodgy <- (Dall < tinythresh)
                ## correct small numerical errors
                probs <- clamp01(probs)
                ## trap NaN values
+               dodgy <- (Dall < tinythresh)
                bad <- badvalues(probs) 
                badrow <- matrowany(bad) | really(dodgy)
                if(any(badrow)) {
+                 warning(paste("Numerical underflow detected:",
+                               "sigma is probably too small"),
+                         call.=FALSE)
+                 uhoh <- unique(c(uhoh, "underflow"))
                  ## apply l'Hopital's rule
                  typenn <- imarks[nnwhich(X)]
                  probs[badrow, ] <- (typenn == col(result))[badrow, ]
@@ -370,6 +445,7 @@ relrisk.ppp <- local({
     }
     attr(result, "sigma") <- sigma
     attr(result, "varcov") <- varcov
+    if(length(uhoh)) attr(result, "warnings") <- uhoh
     return(result)
   }
 
@@ -481,9 +557,9 @@ bw.relrisk.ppp <- function(X, method="likelihood", ...,
            Dthis <- numeric(n)
            for(i in seq_len(nh)) {
              Dall <- density.ppp(X, sigma=h[i], at="points", edge=FALSE,
-                                 sorted=TRUE)
+                                 sorted=TRUE, ...)
              Deach <- density.splitppp(Y, sigma=h[i], at="points", edge=FALSE,
-                                       sorted=TRUE)
+                                       sorted=TRUE, ...)
              split(Dthis, marx) <- Deach
              pthis <- Dthis/Dall
              cv[i] <- -mean(log(pthis))
@@ -493,7 +569,7 @@ bw.relrisk.ppp <- function(X, method="likelihood", ...,
            methodname <- "Least Squares"
            for(i in seq_len(nh)) {
              phat <- Smooth(X01, sigma=h[i], at="points", leaveoneout=TRUE,
-                            sorted=TRUE)
+                            sorted=TRUE, ...)
              phat <- as.matrix(phat)
              cv[i] <- mean((y01 - phat)^2)
            }
@@ -503,13 +579,13 @@ bw.relrisk.ppp <- function(X, method="likelihood", ...,
            ## need initial value of h from least squares
            h0 <- bw.relrisk(X, "leastsquares", nh=ceiling(nh/4))
            phat0 <- Smooth(X01, sigma=h0, at="points", leaveoneout=TRUE,
-                           sorted=TRUE)
+                           sorted=TRUE, ...)
            phat0 <- as.matrix(phat0)
            var0 <- phat0 * (1-phat0)
            var0 <- pmax.int(var0, 1e-6)
            for(i in seq_len(nh)) {
              phat <- Smooth(X01, sigma=h[i], at="points", leaveoneout=TRUE,
-                            sorted=TRUE)
+                            sorted=TRUE, ...)
              phat <- as.matrix(phat)
              cv[i] <- mean((y01 - phat)^2/var0)
            }

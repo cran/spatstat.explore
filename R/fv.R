@@ -4,7 +4,7 @@
 ##
 ##    class "fv" of function value objects
 ##
-##    $Revision: 1.177 $   $Date: 2022/08/11 05:00:35 $
+##    $Revision: 1.180 $   $Date: 2023/04/09 09:51:23 $
 ##
 ##
 ##    An "fv" object represents one or more related functions
@@ -821,8 +821,8 @@ rebadge.fv <- function(x, new.ylab, new.fname,
 
 ## common invocations to label a function like Kdot or Kcross
 rebadge.as.crossfun <- function(x, main, sub=NULL, i, j) {
-  i <- make.parseable(i)
-  j <- make.parseable(j)
+  i <- make.parseable(paste(i))
+  j <- make.parseable(paste(j))
   if(is.null(sub)) {
     ## single function name like "K"
     ylab <- substitute(main[i, j](r),
@@ -845,7 +845,7 @@ rebadge.as.crossfun <- function(x, main, sub=NULL, i, j) {
 }
 
 rebadge.as.dotfun <- function(x, main, sub=NULL, i) {
-  i <- make.parseable(i)
+  i <- make.parseable(paste(i))
   if(is.null(sub)) {
     ## single function name like "K"
     ylab <- substitute(main[i ~ dot](r),
@@ -1154,37 +1154,6 @@ with.fv <- function(data, expr, ..., fun=NULL, enclos=NULL) {
             unitname=unitname(data), fname=fname, yexp=yexp, ylab=yexp)
   fvnames(out, ".") <- dotnames
   return(out)
-}
-
-## method for 'range'
-
-range.fv <- local({
-
-  getValues <- function(x) {
-    xdat <- as.matrix(as.data.frame(x))
-    yall <- fvnames(x, ".")
-    vals <- xdat[, yall]
-    return(as.vector(vals))
-  }
-  
-  range.fv <- function(..., na.rm=TRUE, finite=na.rm) {
-    aarg <- list(...)
-    isfun <- sapply(aarg, is.fv)
-    if(any(isfun)) 
-      aarg[isfun] <- lapply(aarg[isfun], getValues)
-    z <- do.call(range, append(aarg, list(na.rm=na.rm, finite=finite)))
-    return(z)
-  }
-
-  range.fv
-})
-
-min.fv <- function(..., na.rm=TRUE, finite=na.rm) {
-  range(..., na.rm=TRUE, finite=na.rm)[1L]
-}
-
-max.fv <- function(..., na.rm=TRUE, finite=na.rm) {
-  range(..., na.rm=TRUE, finite=na.rm)[2L]
 }
 
   

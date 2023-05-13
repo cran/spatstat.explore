@@ -41,7 +41,8 @@
     the cross-validation criterion occurs at one of the ends of the
     search interval.
   }
-  \item{\dots}{Ignored.}
+  \item{\dots}{Additional arguments passed to \code{\link{density.ppp}}
+    or to other methods for \code{bw.relrisk}.}
 }
 \details{
   This function selects an appropriate bandwidth for the nonparametric
@@ -80,13 +81,17 @@
   calculations involving more pairs of data points.
 }
 \value{
-  A numerical value giving the selected bandwidth.
+  A single numerical value giving the selected bandwidth.
   The result also belongs to the class \code{"bw.optim"}
-  which can be plotted.
+  (see \code{\link[spatstat.explore]{bw.optim.object}})
+  which can be plotted to show the bandwidth selection criterion
+  as a function of \code{sigma}.
 }
 \seealso{
   \code{\link{relrisk}},
-  \code{\link{bw.stoyan}}
+  \code{\link{bw.stoyan}}.
+
+  \code{\link[spatstat.explore]{bw.optim.object}}.
 }
 \examples{
   \testonly{op <- spatstat.options(n.bandwidth=8)}

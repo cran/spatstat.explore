@@ -240,15 +240,17 @@ local({
     pants(relative=TRUE)
     pants(sigma=Inf)
     pants(sigma=NULL, varcov=diag(c(100,100)^2))
+    f <- 1/area(Window(ants))
+    pants(fudge=f)
   }
   if(FULLTEST) {
     pants(diggle=TRUE, at="points")
-    pants(edge=FALSE, at="points")
+    pants(edge=FALSE, at="points", fudge=f)
     pants(casecontrol=FALSE, relative=TRUE)
     pants(casecontrol=FALSE,at="points")
-    pants(relative=TRUE,at="points")
+    pants(relative=TRUE,at="points", fudge=f)
     pants(casecontrol=FALSE, relative=TRUE,at="points")
-    pants(relative=TRUE, control="Cataglyphis", case="Messor")
+    pants(relative=TRUE, control="Cataglyphis", case="Messor", fudge=f)
     pants(relative=TRUE, control="Cataglyphis", case="Messor", at="points")
     pants(casecontrol=FALSE, case="Messor", se=FALSE)
     pants(case=2, at="pixels", relative=TRUE)
@@ -266,10 +268,11 @@ local({
   if(ALWAYS) {
     pants(X=sporophores)
     pants(X=sporophores, sigma=20, at="points")
+    pants(X=sporophores, sigma=20, at="points", fudge=f)
     bw.relrisk(sporophores, method="leastsquares")
   }
   if(FULLTEST) {
-    pants(X=sporophores, sigma=20, relative=TRUE, at="points")
+    pants(X=sporophores, sigma=20, relative=TRUE, at="points", fudge=f)
     pants(X=sporophores, sigma=20, at="pixels", se=FALSE)
     pants(X=sporophores, sigma=20, relative=TRUE, at="pixels", se=FALSE)
     bw.relrisk(sporophores, method="weightedleastsquares")
@@ -311,8 +314,18 @@ local({
     stroke(kernel=g, cutoff=30, FUN=FALSE)
     stroke(kernel=g, cutoff=30, scalekernel=TRUE, sigma=1, FUN=FALSE)
   }
+  if(FULLTEST) {
+    ## standard errors - single column of marks
+    stroke(sigma=5, se=TRUE)
+    stroke(sigma=5, se=TRUE, loctype="f")
+    w <- runif(npoints(longleaf))
+    stroke(sigma=5, se=TRUE, weights=w, loctype="r", wtype="i")
+    stroke(sigma=5, se=TRUE, weights=w, loctype="r", wtype="m")
+    stroke(sigma=5, se=TRUE, weights=w, loctype="f", wtype="i")
+    stroke(sigma=5, se=TRUE, weights=w, loctype="f", wtype="m")
+  }
   
-  markmean(longleaf, 9)
+  niets <- markmean(longleaf, 9)
   
   strike <- function(..., Y=finpines) {
     Z <- Smooth(Y, ..., at="pixels")
@@ -341,6 +354,16 @@ local({
     flatfin <- finpines %mark% data.frame(a=rep(1, npoints(finpines)), b=2)
     strike(1.5, Y=flatfin)
     strike(1.5, Y=flatfin, geometric=TRUE)
+  }
+  if(FULLTEST) {
+    ## standard errors - multivariate marks
+    strike(sigma=1.5, se=TRUE)
+    strike(sigma=1.5, se=TRUE, loctype="f")
+    w <- runif(npoints(finpines))
+    strike(sigma=1.5, se=TRUE, weights=w, loctype="r", wtype="i")
+    strike(sigma=1.5, se=TRUE, weights=w, loctype="r", wtype="m")
+    strike(sigma=1.5, se=TRUE, weights=w, loctype="f", wtype="i")
+    strike(sigma=1.5, se=TRUE, weights=w, loctype="f", wtype="m")
   }
   opx <- spatstat.options(densityTransform=FALSE)
   if(ALWAYS) {
