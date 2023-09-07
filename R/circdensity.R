@@ -3,7 +3,7 @@
 #'
 #' Kernel smoothing for circular data
 #'
-#'   $Revision: 1.4 $ $Date: 2022/01/04 05:30:06 $
+#'   $Revision: 1.6 $ $Date: 2023/08/14 06:28:59 $
 
 circdensity <- function(x, sigma="nrd0", ..., bw=NULL,
                         weights=NULL,
@@ -42,8 +42,9 @@ circdensity <- function(x, sigma="nrd0", ..., bw=NULL,
   z <- do.call(density.default,
                resolve.defaults(list(x=xx, bw=sigma, weights=weights),
                                 list(...),
-                                list(from=0, to=FullCircle)))
+                                list(from=0, to=FullCircle, warnWbw=FALSE)))
   z$y <- 3 * z$y
   z$data.name <- xname
+  z$call <- match.call()
   return(z)
 }
