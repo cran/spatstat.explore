@@ -160,7 +160,7 @@
   Chapman and Hall, New York.
 }
 \author{
-  Tilman M. Davies. Adapted by \adrian.
+  \tilman. Adapted by \adrian.
 }
 \examples{
 # 'ch' just 58 laryngeal cancer cases
@@ -186,4 +186,5 @@ hvo <- bw.abram(ch, h0=1, smoother=densityVoronoi)
 }
 \keyword{spatial}
 \keyword{nonparametric}
-
+\concept{Adaptive smoothing}
+\concept{Bandwidth selection}

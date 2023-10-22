@@ -1,6 +1,6 @@
 \name{kernel.moment}
 \alias{kernel.moment}
-\title{Moment of Smoothing Kernel}
+\title{Incomplete Moment of Smoothing Kernel}
 \description{
   Computes the complete or incomplete \eqn{m}th moment of a
   smoothing kernel.
@@ -72,7 +72,7 @@
 }
 \author{
   \adrian
-  and Martin Hazelton.
+  and \martinH.
 }
 \keyword{methods}
 \keyword{nonparametric}

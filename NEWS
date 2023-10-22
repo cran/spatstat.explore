@@ -1,4 +1,61 @@
 
+        CHANGES IN spatstat.explore VERSION 3.2-5
+
+OVERVIEW
+
+    o Minor corrections in documentation.
+
+        CHANGES IN spatstat.explore VERSION 3.2-4
+
+OVERVIEW
+
+    o Integration of functions.
+
+    o Changed defaults for Clark-Evans Test.
+
+    o spatstat.explore no longer suggests package 'maptools'.
+    
+    o Minor improvements and bug fixes.
+
+NEW FUNCTIONS
+
+    o integral.fv
+    Compute the integral of a function.
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o density.ppp
+    New argument 'sameas'.
+
+    o clarkevans.test
+    The asymptotic test is now available for any choice of edge correction.
+
+    o clarkevans.test
+    New argument 'method' determines whether to use the asymptotic test
+    or Monte Carlo test. The default has changed to method='asymptotic'.
+
+    o clarkevans.test
+    Default edge correction has changed, to avoid bias.
+
+BUG FIXES
+
+    o kernel.squint
+    The return value was incorrect if the argument 'bw' was given.
+    Fixed.
+    
+    o pcf
+    The variance approximation was calculated incorrectly
+    (due to the bug in kernel.squint).
+    Fixed.
+    
+    o quantile.density
+    Crashed if `probs` contained NA values and `names=FALSE`.
+    Fixed.
+
+    o bw.smoothppp
+    Crashed if every point in 'X' was duplicated.
+    Fixed.
+
         CHANGES IN spatstat.explore VERSION 3.2-3
 
 OVERVIEW
