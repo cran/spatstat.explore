@@ -1,7 +1,7 @@
 #'
 #'   densityAdaptiveKernel.R
 #'
-#'   $Revision: 1.7 $  $Date: 2023/03/07 02:05:45 $
+#'   $Revision: 1.14 $  $Date: 2023/12/08 13:15:54 $
 #'
 #'
 #'  Adaptive kernel smoothing via 3D FFT
@@ -93,3 +93,60 @@ densityAdaptiveKernel.ppp <- function(X, bw, ...,
   return(ZZ)
 }
 
+
+densityAdaptiveKernel.ppplist <- 
+densityAdaptiveKernel.splitppp <- function(X, bw=NULL, ...,
+                                           weights=NULL) {
+  n <- length(X)
+  bw      <- ensure.listarg(bw,
+                            n=n,
+                            singletypes=c("NULL", "im", "funxy"),
+                            xtitle="bw")
+  weights <- ensure.listarg(weights,
+                            n=n,
+                            singletypes=c("NULL", "im", "funxy", "expression"),
+                            xtitle="weights")
+  y <- mapply(densityAdaptiveKernel.ppp, X=X, bw=bw, weights=weights,
+              MoreArgs=list(...),
+              SIMPLIFY=FALSE)
+  return(as.solist(y, demote=TRUE))
+}
+
+
+## move this to spatstat.data when stable
+
+ensure.listarg <- function(x, n, singletypes=character(0), 
+                           xtitle=NULL, things="point patterns") {
+  if(inherits(x, singletypes)) {
+    ## single object: replicate it
+    x <- rep(list(x), n)
+    return(x)
+  } 
+  if(!is.list(x)) {
+    ## error 
+    if(is.null(xtitle)) xtitle <- short.deparse(substitute(x))
+    whinge <- paste(xtitle, "should be a list")
+    if(length(singletypes)) {
+      otypes <- setdiff(singletypes, "NULL")
+      if(length(otypes))
+        whinge <- paste(whinge,
+                        "or an object of class",
+                        commasep(dQuote(otypes), "or"))
+      if("NULL" %in% singletypes)
+        whinge <- paste(whinge, "or NULL")
+    }
+    stop(whinge, call.=FALSE)
+  }
+  nx <- length(x)
+  if(nx != n) {
+    if(is.null(xtitle)) xtitle <- short.deparse(substitute(x))
+    whinge <- paste("The length of",
+                    sQuote(xtitle), 
+                    "should equal the number of",
+                    things,
+                    paren(paste(nx, "!=", n)))
+    stop(whinge, call.=FALSE)
+  }
+  return(x)
+}
+  

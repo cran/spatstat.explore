@@ -3,7 +3,7 @@
 #	Usual invocation to compute J function
 #	if F and G are not required 
 #
-#	$Revision: 4.26 $	$Date: 2022/01/04 05:30:06 $
+#	$Revision: 4.27 $	$Date: 2023/12/07 10:42:49 $
 #
 #
 #
@@ -14,7 +14,7 @@ Jest <- function(X, ..., eps=NULL, r=NULL, breaks=NULL, correction=NULL) {
                           rmaxdefault=rmax.rule("J", W, intensity(X)))
   checkspacing <- !isFALSE(list(...)$checkspacing)
   #' compute F and G 
-  FF <- Fest(X, eps, breaks=brks, correction=correction,
+  FF <- Fest(X, eps=eps, breaks=brks, correction=correction,
              checkspacing=checkspacing)
   G <- Gest(X, breaks=brks, correction=correction)
   # initialise fv object

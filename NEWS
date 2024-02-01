@@ -1,4 +1,57 @@
 
+        CHANGES IN spatstat.explore VERSION 3.2-6
+
+OVERVIEW
+
+    o We thank Mohomed Abraj, Marcelino de la Cruz and Stephanie Hogg
+      for contributions.
+    
+    o Spatially weighted median and quantile of mark values.
+    
+    o Adaptive estimation of intensity for split point patterns.
+
+    o Anisotropic bandwidth selection
+
+    o Boyce index.
+    
+    o Internal improvements.
+    
+    o Bug fixes.
+
+NEW FUNCTIONS
+
+    o SpatialMedian.ppp, SpatialQuantile.ppp
+    Spatially weighted median and quantile of mark values of a point pattern.
+
+    o boyce
+    Boyce index and continuous Boyce index.
+    
+    o densityAdaptiveKernel.splitppp
+    A method for 'densityAdaptiveKernel' for split point patterns.
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o bw.ppl
+    New argument `varcov1' for anisotropic bandwidth selection.
+
+    o bw.smoothppp
+    New argument `varcov1' for anisotropic bandwidth selection.
+
+BUG FIXES
+
+    o studpermu.test
+    The code required each group to consist of at least 3 point patterns,
+    rather than 2 point patterns (as stated in the documentation).
+    Fixed.
+
+    o Jest
+    Ignored pixel resolution argument 'eps'.
+    Fixed.
+
+    o scanLRTS
+    Pixel resolution arguments 'dimyx', 'eps', 'xy' were not correctly handled.
+    Fixed.
+    
         CHANGES IN spatstat.explore VERSION 3.2-5
 
 OVERVIEW

@@ -38,6 +38,7 @@
 \alias{dimnames.fasp}               
 \alias{dimnames<-.fasp}
 \alias{distributecbind}
+\alias{ensure.listarg}
 \alias{envelopeEngine}
 \alias{envelopeProgressData}
 \alias{envelopeTest}
@@ -157,6 +158,9 @@
 \alias{sewsmod}
 \alias{shift.quadrattest}              
 \alias{simulrecipe}              
+\alias{StieltjesCalc}
+\alias{StieltjesCalc.stepfun}
+\alias{StieltjesCalc.fv}
 \alias{Smooth.solist}
 \alias{smoothcrossEngine}              
 \alias{smoothpointsEngine}
@@ -206,7 +210,8 @@ bermantestEngine(model, covariate, which, alternative, \dots,
 bind.ratfv(x, numerator, denominator, labl, desc, preferred,
            ratio, quotient)
 bw.optim(cv, h, iopt, \dots, cvname, hname, criterion,
-         optimum, warnextreme, hargnames, yexp, unitname)
+         optimum, warnextreme, hargnames, yexp, unitname,
+         template, exponent, hword)
 calc.DR(COV, z, Dim)
 calc.NNIR(COV, z, pos, Dim)
 calc.SAVE(COV, z, Dim)
@@ -241,6 +246,7 @@ digital.volume(range, nval, vside)
 \method{dimnames}{fasp}(x)
 \method{dimnames}{fasp}(x) <- value
 distributecbind(x)
+ensure.listarg(x, n, singletypes, xtitle, things)
 envelopeEngine(X, fun, simul,
            nsim, nrank, \dots, funargs, funYargs,
            verbose, clipdata, 
@@ -417,6 +423,9 @@ sewpcf(d, w, denargs, lambda2area, divisor)
 sewsmod(d, ff, wt, Ef, rvals, method="smrep", \dots, nwtsteps=500)
 \method{shift}{quadrattest}(X, \dots)
 simulrecipe(type, expr, envir, csr, pois, constraints)
+StieltjesCalc(M, f, \dots)
+\method{StieltjesCalc}{stepfun}(M, f, \dots)
+\method{StieltjesCalc}{fv}(M, f, \dots)
 \method{Smooth}{solist}(X, \dots)
 smoothcrossEngine(Xdata, Xquery, values, sigma, \dots,
                     weights, varcov,

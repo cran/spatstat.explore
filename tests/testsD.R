@@ -19,8 +19,9 @@ cat(paste("--------- Executing",
 #'                    relrisk(), Smooth()
 #'                    and inhomogeneous summary functions
 #'                    and idw, adaptive.density, intensity
+#'                    and SpatialMedian, SpatialQuantile
 #'
-#'  $Revision: 1.62 $  $Date: 2022/05/22 11:14:51 $
+#'  $Revision: 1.67 $  $Date: 2024/01/29 07:07:16 $
 #'
 
 if(!FULLTEST)
@@ -300,6 +301,7 @@ local({
     stroke(5, weights=expression(x))
     stroke(5, kernel="epa")
     stroke(sigma=Inf)
+    stroke(varcov1=diag(c(1,1))) # 'anisotropic' code
   }
   if(FULLTEST) {
     Z <- as.im(function(x,y){abs(x)+1}, Window(longleaf))
@@ -437,6 +439,16 @@ local({
     V <- Smooth(longleaf, 5, geometric=TRUE, at="points")
     VV <- Smooth(X, 5, geometric=TRUE, at="points")
   }
+
+  if(FULLTEST) {
+    ## isotropic and anisotropic cases of bw.smoothppp
+    bi <- bw.smoothppp(longleaf)
+    ba <- bw.smoothppp(longleaf, varcov1=diag(c(1,1)))
+    ## should be equal
+    if(abs(bi-ba) > 0.001)
+      stop(paste("Inconsistency in bw.smoothppp: isotropic =", bi,
+                 "!=", ba, "= anisotropic"))
+  }
 })
 
 reset.spatstat.options()
@@ -498,26 +510,6 @@ local({
 
 local({
   if(FULLTEST) {
-    ## FOR EXCISION
-    #' code in kernels.R
-    kernames <- c("gaussian", "rectangular", "triangular",
-                  "epanechnikov", "biweight", "cosine", "optcosine")
-    X <- rnorm(20)
-    U <- runif(20)
-    for(ker in kernames) {
-      dX <- dkernel(X, ker)
-      fX <- pkernel(X, ker)
-      qU <- qkernel(U, ker)
-      m0 <- kernel.moment(0, 0, ker)
-      m1 <- kernel.moment(1, 0, ker)
-      m2 <- kernel.moment(2, 0, ker)
-      m3 <- kernel.moment(3, 0, ker)
-    }
-  }
-})
-
-local({
-  if(FULLTEST) {
     ## idw
     Z <- idw(longleaf, power=4)
     Z <- idw(longleaf, power=4, se=TRUE)
@@ -548,13 +540,6 @@ local({
 })
 
 local({
-  if(ALWAYS) {
-    ## FOR EXCISION
-    ## unnormdensity
-    x <- rnorm(20) 
-    d0 <- unnormdensity(x, weights=rep(0, 20))
-    dneg <- unnormdensity(x, weights=c(-runif(19), 0))
-  }
   if(FULLTEST) {
     ## cases of 'intensity' etc
     a <- intensity(amacrine, weights=expression(x))
@@ -568,6 +553,18 @@ local({
     Z <- as.im(f, W=square(0.5))
   }
 })
+
+local({
+  if(FULLTEST) {
+    ## other cases of SpatialQuantile.ppp
+    X <- longleaf
+    marks(X) <- round(marks(X), -1)
+    Z <- SpatialMedian(X, 30, type=4)
+    ZX <- SpatialMedian(X, 30, type=4, at="points")
+    ZXP <- SpatialMedian(X, 30, at="points", leaveoneout=FALSE)
+  }
+})
+
 
 
 reset.spatstat.options()

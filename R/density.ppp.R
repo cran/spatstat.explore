@@ -3,7 +3,7 @@
 #
 #  Method for 'density' for point patterns
 #
-#  $Revision: 1.133 $    $Date: 2023/09/27 02:47:39 $
+#  $Revision: 1.136 $    $Date: 2024/01/29 07:25:10 $
 #
 
 # ksmooth.ppp <- function(x, sigma, ..., edge=TRUE) {
@@ -73,12 +73,7 @@ density.ppp <- function(x, sigma=NULL, ...,
   }
 
   ## ............... weights ...........................................
-  if(is.im(weights)) {
-    weights <- safelookup(weights, x) # includes warning if NA
-  } else if(is.expression(weights)) 
-    weights <- eval(weights, envir=as.data.frame(x), enclos=parent.frame())
-  if(length(weights) == 0 || (!is.null(dim(weights)) && nrow(weights) == 0))
-    weights <- NULL 
+  weights <- pointweights(x, weights=weights, parent=parent.frame(), dfok=TRUE)
 
   ## ............... standard error ....................................
   if(se) {
@@ -771,6 +766,20 @@ resolve.2D.kernel <- function(..., sigma=NULL, varcov=NULL, x, mindist=NULL,
                           resolve.defaults(list(X=quote(x)),
                                            list(...)))
     #' interpret the result as either sigma or varcov
+    if(inherits(bw, "bw.optim")) {
+      ## bw is an object representing an optimised scalar 
+      tem <- attr(bw, "template")
+      if(is.null(tem)) {
+        ## usual case: interpret bw as a scalar bandwidth
+        bw <- as.numeric(bw)
+      } else {
+        ## interpret as a scale multiple of the template (usually a matrix)
+        h <- as.numeric(bw)
+        exponent <- attr(bw, "exponent") %orifnull% 1
+        bw <- (h^exponent) * tem
+      }
+    }
+    #' now process 'bw' as a numeric object
     if(!is.numeric(bw))
       stop("bandwidth selector returned a non-numeric result")
     if(length(bw) %in% c(1L,2L)) {
@@ -1096,7 +1105,7 @@ bandwidth.is.infinite <- function(sigma) {
 
 density.ppplist <- 
 density.splitppp <- function(x, ..., weights=NULL, se=FALSE) {
-  if(is.null(weights) || is.im(weights) || is.expression(weights))
+  if(is.null(weights) || inherits(weights, c("im", "funxy", "expression")))
     weights <- rep(list(weights), length(x))
   y <- mapply(density.ppp, x=x, weights=weights,
               MoreArgs=list(se=se, ...),
