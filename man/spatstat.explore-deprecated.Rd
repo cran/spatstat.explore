@@ -1,4 +1,5 @@
 \name{spatstat.explore-deprecated}
+\alias{spatstat.explore-deprecated} %DoNotExport
 \alias{evalCovar}
 \alias{which.max.im}
 \title{Deprecated spatstat.explore functions}
@@ -16,7 +17,7 @@ which.max.im(x)
   
 
   \code{which.max.im(x)} is replaced by
-  \code{\link{im.apply}(x, which.max)}.
+  \code{\link[spatstat.geom]{im.apply}(x, which.max)}.
   
   The internal function \code{evalCovar}
   is replaced by the internal function \code{spatialCovariateEvidence}.

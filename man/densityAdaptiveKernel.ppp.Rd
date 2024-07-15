@@ -1,5 +1,4 @@
-\name{densityAdaptiveKernel}
-\alias{densityAdaptiveKernel}
+\name{densityAdaptiveKernel.ppp}
 \alias{densityAdaptiveKernel.ppp}
 \title{Adaptive Kernel Estimate of Intensity of Point Pattern}
 \description{
@@ -7,8 +6,6 @@
   pattern using a variable-bandwidth smoothing kernel.
 }
 \usage{
-densityAdaptiveKernel(X, \dots)
-
 \method{densityAdaptiveKernel}{ppp}(X, bw, \dots,
        weights=NULL,       
        at=c("pixels", "points"),
@@ -27,7 +24,7 @@ densityAdaptiveKernel(X, \dots)
   }
   \item{\dots}{
     Arguments passed to
-    \code{\link{bw.abram}} to compute the smoothing bandwidths
+    \code{\link{bw.abram.ppp}} to compute the smoothing bandwidths
     if \code{bw} is missing,
     or passed to \code{\link[spatstat.geom]{as.mask}}
     to control the spatial resolution of the result.
@@ -53,6 +50,10 @@ densityAdaptiveKernel(X, \dots)
   spatially-varying intensity from the point pattern \code{X}
   using the partitioning technique of Davies and Baddeley (2018).
 
+  The function \code{\link[spatstat.univar]{densityAdaptiveKernel}} is generic.
+  This file documents the method for point patterns,
+  \code{densityAdaptiveKernel.ppp}.
+  
   The argument \code{bw} specifies the smoothing bandwidths to be
   applied to each of the points in \code{X}. It may be a numeric vector
   of bandwidth values, or a pixel image or function yielding the
@@ -96,7 +97,7 @@ densityAdaptiveKernel(X, \dots)
   determined by the smoothing bandwidth values \code{bw}.
 
   Typically the bandwidth values are computed by first computing
-  a pilot estimate of the intensity, then using \code{\link{bw.abram}}
+  a pilot estimate of the intensity, then using \code{\link{bw.abram.ppp}}
   to compute the vector of bandwidths according to Abramson's rule.
   This involves specifying a global bandwidth \code{h0}.
   
@@ -131,6 +132,7 @@ densityAdaptiveKernel(X, \dots)
   Chapman and Hall, New York.
 }
 \seealso{
+  \code{\link{bw.abram.ppp}},
   \code{\link{density.ppp}},
   \code{\link{adaptive.density}},
   \code{\link{densityVoronoi}},

@@ -27,7 +27,7 @@ segregation.test(X, \dots)
     Number of simulations for the Monte Carlo test.
   }
   \item{permute}{
-    Argument passed to \code{\link{rlabel}}. If \code{TRUE} (the
+    Argument passed to \code{\link[spatstat.random]{rlabel}}. If \code{TRUE} (the
     default), randomisation is performed by randomly permuting the
     labels of \code{X}. If \code{FALSE}, randomisation is performing
     by resampling the labels with replacement.
@@ -69,6 +69,10 @@ segregation.test(X, \dots)
   An object of class \code{"htest"} representing the result of the test.
 }
 \references{
+  Bithell, J.F. (1991)
+  Estimation of relative risk functions.
+  \emph{Statistics in Medicine} \bold{10}, 1745--1751.
+
   Kelsall, J.E. and Diggle, P.J. (1995)
   Kernel estimation of relative risk.
   \emph{Bernoulli} \bold{1}, 3--16.
