@@ -1,6 +1,6 @@
-1eddae7e22e71f2d8590b94ed6541672 *DESCRIPTION
+3b24bf6da40a3853e5c3f931720d2fc1 *DESCRIPTION
 6afee6464afe384d60b335ca02f0ae2e *NAMESPACE
-799fdb7d586602e795a9776fbfaa70a7 *NEWS
+d05ddedbfa96f1d84de141ee9a57d706 *NEWS
 d6e3392a80a6e943f6926bab3ce68711 *R/FGmultiInhom.R
 f85ebd958263c02958f6bc1339b3509a *R/Fest.R
 6a6553b98f4929fbabbc24fbdfa7c5ce *R/First.R
@@ -126,15 +126,14 @@ b25c0380a5f1ffcca2862a0186e80990 *R/spatialQuantile.R
 460b2622b66a61a8a709f0188504b7d2 *R/ssf.R
 59c7fff4ecd9e618764ba05c7dc838dc *R/stienen.R
 1fee3bd0c8443e0d43dce178c4ec70d6 *R/studpermutest.R
-bb1370f2cc15c3ed6abd1f15191975d4 *R/sysdata.rda
 b16dfa38099fa525f0c611bfb8e549c9 *R/thresholding.R
 5adc6ed40d9b4ea1b8119ed5bc620171 *R/transect.R
 11fb0a6f8eabdd98f5edb09252312572 *R/twostage.R
 f69e6cd021b03289f2d962c648702622 *R/varblock.R
 95abec834b4d080fa0b611add9bac836 *R/wtdclosepair.R
 f2d49fc8f50fef7f76bcb3fc7f34efb4 *inst/CITATION
-a88648ab0c505af9554bd159e9c2cb6b *inst/doc/packagesizes.txt
-a88648ab0c505af9554bd159e9c2cb6b *inst/info/packagesizes.txt
+885887f63e8966621e3f78602d403faa *inst/doc/packagesizes.txt
+885887f63e8966621e3f78602d403faa *inst/info/packagesizes.txt
 0092397ec1b97793f1a26f880f3b979f *man/Emark.Rd
 5e53668c16bf9ab608fe89f038029027 *man/Extract.fasp.Rd
 e50f40eb875c124095941fc99a486f36 *man/Extract.fv.Rd
@@ -205,8 +204,8 @@ d740d6e1282248fc9131d68a8d235d20 *man/as.function.fv.Rd
 04aae9f797fc245131cd2b1e565c3817 *man/as.fv.Rd
 b45c90e759c8870a603615672a9b5429 *man/as.owin.quadrattest.Rd
 41c61f04f7b163496bd1b6b17689f690 *man/as.tess.Rd
-a1ae0c574300493fc9466a6a80e1310b *man/auc.Rd
-09a52c2772da1d2f07b0c1d7587cb52b *man/berman.test.Rd
+d6119f0f62f690a2cb1cfebb568ea798 *man/auc.Rd
+0c64d2c1c4449c3b1d95614df96801c7 *man/berman.test.Rd
 d2c274a96d29ca5cdc82af047acbbbab *man/bind.fv.Rd
 8ba1641bd79b00e57f0b9182f8b72d45 *man/bits.envelope.Rd
 4918f6fd9c059fb7df753f8e3e2b6937 *man/bits.test.Rd
@@ -226,7 +225,7 @@ b5cd59d3d8e956e93cc5f92880ef8d30 *man/bw.pcf.Rd
 20b4fc928bc6de12b13281cdfbff767e *man/bw.scott.Rd
 2eba62af96953eb5e04d83c489b5f7f3 *man/bw.smoothppp.Rd
 41a36343163ce6de22ec851dcfa1dc73 *man/bw.stoyan.Rd
-1b5e9307d2f781ddde04cf916e9838ae *man/cdf.test.Rd
+d56a6cca28857aed4da07989d3ff87ca *man/cdf.test.Rd
 c9d72cc2b707dc4cdc8a091441c0330e *man/circdensity.Rd
 c4058c79a2e0060812b41aae6e21cd45 *man/clarkevans.Rd
 f36298d0d894f41c476c8821ae67e339 *man/clarkevans.test.Rd
@@ -259,7 +258,7 @@ bdd4586f260a366e3b00e5c5c62a820c *man/distcdf.Rd
 9ef2454fbb5f430bf111f10c9db9dee2 *man/domain.quadrattest.Rd
 623a912c3f9f26c4e122c3c3932a5b48 *man/edge.Ripley.Rd
 abab7d87f28cfd003e2fd333d087af0d *man/edge.Trans.Rd
-377325ff92426bdc94bdde6321f2d1dd *man/envelope.Rd
+88fc1d53cb80ec7584b7975c3180f158 *man/envelope.Rd
 755161786a5f1aa3a49f182f8412c76c *man/envelope.envelope.Rd
 65b8f88b766c33536dafeb9aeab2d6ac *man/envelope.pp3.Rd
 a45c4f951da227119a5ebf01cd4e865e *man/envelopeArray.Rd
@@ -303,7 +302,7 @@ b816aba5e1b538017a04ea70ba9e08bd *man/markvario.Rd
 6de1938328ef83158520075d14c3d95b *man/pairMean.Rd
 ae6a17d8b47bc103cfc21d5ccb2f9fb2 *man/pairorient.Rd
 7153bebaa1e2c4210c9a6eb7720ad83a *man/pairs.im.Rd
-9f3617576b140c35f5e0aec920e7cc1a *man/panel.contour.Rd
+09ab7311c0b0fffaa524bd31aff5a40f *man/panel.contour.Rd
 9b06494a831f88b18f8196c687770fa4 *man/pcf.Rd
 dfadd4ff1016669603491af6a4362311 *man/pcf.fasp.Rd
 aeb5cdc38dbcd2acefb53b9b192eb5a5 *man/pcf.fv.Rd
@@ -332,7 +331,7 @@ dd69d4d54bbdf03a76a85a3c74fac1da *man/plot.ssf.Rd
 a0059ae9ec4770fc7f7760eb11e28344 *man/pool.fv.Rd
 2f6e7426a7b09aae4756b51c01f041a0 *man/pool.quadrattest.Rd
 46d143e957a755ef88cf33cac69ace4f *man/pool.rat.Rd
-4fd3a7f18158a1a906a62765c1363746 *man/quadrat.test.Rd
+45f080f1b075cd34b56df4cc5a3c4d8f *man/quadrat.test.Rd
 36d67ee9dd43907fc635301f095abf9e *man/quadrat.test.splitppp.Rd
 018a2b681041c642ba087e77cf437669 *man/radcumint.Rd
 d9273900fb3ff4f7a5f54d4b162d7345 *man/rat.Rd
@@ -341,8 +340,8 @@ e2068459e97d0d2300ae006d84855e0e *man/reload.or.compute.Rd
 4e5b944e97f48008b6f7ec11c9ae5cc1 *man/relrisk.Rd
 f31a90a8d607012c58b4b0211ae3949b *man/relrisk.ppp.Rd
 d78b71b1a3a36882c262276bfb783c87 *man/rho2hat.Rd
-4762e822b4478eef4bb15c5472f0a9c9 *man/rhohat.Rd
-7fbfcdb03a10568746feeb68c5c22d95 *man/roc.Rd
+1fd10961c689d3f2d51b4661d2d5cfef *man/rhohat.Rd
+8d5adcf98a67cefc5a4e5be3ae960de8 *man/roc.Rd
 b062a825c0b76bc5292d540ff065b8bf *man/rose.Rd
 4709f8220a6d9b0380b3d9a4ed8eee75 *man/rotmean.Rd
 c85ea6c89322a71c3c8671f0bfe4603b *man/scan.test.Rd
@@ -355,7 +354,7 @@ c85ea6c89322a71c3c8671f0bfe4603b *man/scan.test.Rd
 53c11c5c15e762aa32ff8ca3cc792cfa *man/spatialcdf.Rd
 228b320547756b45610d6b8ef91eb802 *man/spatstat.explore-deprecated.Rd
 057f6a473a7a8d8f7f4b5cf628cd923d *man/spatstat.explore-internal.Rd
-30efce7a116eddefce9f86ee7f72de66 *man/spatstat.explore-package.Rd
+96ae23064df2408c010d8718a94ffaf6 *man/spatstat.explore-package.Rd
 5469878df5bd09c57fdbb517b17310e3 *man/ssf.Rd
 5017da60c51db6c67b0788951efb3199 *man/stienen.Rd
 42a8c76679cc6c23c520b84884725fe0 *man/studpermu.test.Rd
@@ -409,7 +408,7 @@ b525f1b5e6754c376bc5107565b3dbcb *src/ripleybox.h
 64ceb36a9d82f91028f6e97815bd7e98 *src/scan.c
 09234550b699f0cc2bc71066519869b5 *src/segdens.c
 1091ee379187f845ec9ab976bf1e8009 *src/sphefrac.c
-37c1a8f65cf5da1d0bfe8121cfd8a6c7 *src/sphevol.c
+08126353fd72c69221a479f3abb19a38 *src/sphevol.c
 5c127a9d5ddeaee8cc8f34b32218a3a5 *src/yesno.h
 39c4b4cba525955d7a920f85e3124fe8 *tests/funky.tab
 b51217edee1da528ea36a1b80ad13aff *tests/testsAtoC.R
