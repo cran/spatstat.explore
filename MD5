@@ -1,6 +1,6 @@
-3b24bf6da40a3853e5c3f931720d2fc1 *DESCRIPTION
-6afee6464afe384d60b335ca02f0ae2e *NAMESPACE
-d05ddedbfa96f1d84de141ee9a57d706 *NEWS
+89dfaf42e0603a096c14452dc9f6e3ab *DESCRIPTION
+f1ffad61656618b9e763c7f3a9e6351e *NAMESPACE
+3d7b3d1cb402f411c0d03d9fc96c69e3 *NEWS
 d6e3392a80a6e943f6926bab3ce68711 *R/FGmultiInhom.R
 f85ebd958263c02958f6bc1339b3509a *R/Fest.R
 6a6553b98f4929fbabbc24fbdfa7c5ce *R/First.R
@@ -22,6 +22,7 @@ fedb8a7b7896c8e1df0668ea85e12d6d *R/Kscaled.R
 e8e3ff8296e6bea222f808a02040cdd9 *R/Ksector.R
 2a15c3c23318b974e7d3ab82d983d059 *R/Math.fasp.R
 cf4fb5212185e34ea627c33b31f234b7 *R/Math.fv.R
+976a2fe4afc372b8fd25562df4aa7b1a *R/SmoothHeat.R
 15200464f18f33ee9e035c9121666bb4 *R/Tstat.R
 ef20ad4c0a1d98a59f05de0fbd37b61c *R/adaptive.density.R
 948e229cfe013701e32cbf3690856c2d *R/allstats.R
@@ -29,6 +30,7 @@ c2667393272d1b082100c877490f5eb0 *R/alltypes.R
 3c2542d3e2ef28fcc16692ee0e77a472 *R/auc.R
 9950ab3fc5046b5ea0da4fff17755d93 *R/bermantest.R
 edde9119c366c2e54fc6ecbf212d89cc *R/blur.R
+261e08ae0b54b871aed89d4f7b731e9a *R/blurHeat.R
 2d2ac65bcd31f0eb1b1ff987ade0453e *R/boyce.R
 796a6ca72e1f199c2517c261a96e1ad2 *R/bw.CvL.R
 d80f4794b63f364c47783fa8ed4e6540 *R/bw.CvL.adaptive.R
@@ -38,7 +40,7 @@ e8884b3c1f820a6193f181c57933bc5d *R/bw.diggle.R
 15bb45e5bff910b091d22a085ef52bb1 *R/bw.frac.R
 0512869a1aa73fbfe25a72a61354bbdd *R/bw.optim.R
 197016f1b661ee073991a88e0b3a7afd *R/bw.pcf.R
-f5d07202f259f02a91343ed6709a7d7d *R/bw.ppl.R
+a9b538133c5d3c0f6a193ba670f1ff95 *R/bw.ppl.R
 c13e3ad08d78e1f397e769bd13bb0393 *R/bw.pplHeat.R
 7458e40ffda1e5eda31f1fcf78548f17 *R/bw.scott.R
 58d72644384ccac851eedd25fb3ffd74 *R/cdftest.R
@@ -51,7 +53,7 @@ bb22386cb65bd41b9c346005f7cd04c3 *R/dclftest.R
 e9a5b4ccfe56f19269bea27d74c1dfdb *R/density.ppp.R
 d95e6940ff6258421be43ebd611f6d15 *R/density.psp.R
 458c5b7190433cf6e4f4fc8035cea9ac *R/densityAdaptiveKernel.ppp.R
-11c515e2b070736780d62f9a30ed1367 *R/densityHeat.ppp.R
+fa8ff7ad73f23ddf425a3ea5e3610974 *R/densityHeat.ppp.R
 207eddd48a97367da427f16533d4ce35 *R/densityVoronoi.R
 eecdb7361ea7ea1ac8d63c1e387caef0 *R/densityfun.R
 6706d26fc720c429660657026da0ccac *R/derivfv.R
@@ -106,6 +108,7 @@ d06c9bdab82a9d64ccabe3154e91bcb9 *R/ppqq.R
 3f87aec78c984221b6c69e10f4a488ea *R/radcum.R
 0f733c947fd26f920f15f62d7b78f3ae *R/rat.R
 755de318938aabe55b5da438015b02e2 *R/relrisk.R
+233fc7cb44c966736edd58bee84e1670 *R/relriskHeat.R
 292ad0ad6710c91248962adec12d3a61 *R/resolve.lambda.R
 e9e1486502e4d6dc502b69bdc59e4ebd *R/rho2hat.R
 b60fe677fcc1db9c521eb54fc0b10a79 *R/rhohat.R
@@ -132,8 +135,8 @@ b16dfa38099fa525f0c611bfb8e549c9 *R/thresholding.R
 f69e6cd021b03289f2d962c648702622 *R/varblock.R
 95abec834b4d080fa0b611add9bac836 *R/wtdclosepair.R
 f2d49fc8f50fef7f76bcb3fc7f34efb4 *inst/CITATION
-885887f63e8966621e3f78602d403faa *inst/doc/packagesizes.txt
-885887f63e8966621e3f78602d403faa *inst/info/packagesizes.txt
+bfc154ba9aeb92a42d8a9903c727a6a6 *inst/doc/packagesizes.txt
+bfc154ba9aeb92a42d8a9903c727a6a6 *inst/info/packagesizes.txt
 0092397ec1b97793f1a26f880f3b979f *man/Emark.Rd
 5e53668c16bf9ab608fe89f038029027 *man/Extract.fasp.Rd
 e50f40eb875c124095941fc99a486f36 *man/Extract.fv.Rd
@@ -189,6 +192,8 @@ ce2f8104116810b2735dd24e878e5f01 *man/Smooth.Rd
 e70fc1f8281705102f2c381c23f125fb *man/Smooth.fv.Rd
 c3f095e440dfecd3abc849a6c403b61a *man/Smooth.ppp.Rd
 e5ad9be9eac0f92b2ebbdc02f558086d *man/Smooth.ssf.Rd
+06015a55b03f35dec500be3797d4c14d *man/SmoothHeat.Rd
+774d0d701731ff025cb79bc5ae817004 *man/SmoothHeat.ppp.Rd
 33beae68594bd5fa119340460b502efe *man/Smoothfun.ppp.Rd
 7a49a1bc238ce23cefc2f9b546bded5a *man/SpatialMedian.ppp.Rd
 eb354d4f81ce0f7acbc789907e219fba *man/SpatialQuantile.Rd
@@ -210,6 +215,7 @@ d2c274a96d29ca5cdc82af047acbbbab *man/bind.fv.Rd
 8ba1641bd79b00e57f0b9182f8b72d45 *man/bits.envelope.Rd
 4918f6fd9c059fb7df753f8e3e2b6937 *man/bits.test.Rd
 802793bbaef1a44f2cb1f2a793e379a0 *man/blur.Rd
+650dc52e263179cfa99933ef1b7282e7 *man/blurHeat.Rd
 4a56d9414ae0aaf1738665e2b9241a59 *man/boyce.Rd
 023f5fce9df18a86aed71c1d9548661d *man/bw.CvL.Rd
 7a93545c1f8e5244742f0f0ba9f72a05 *man/bw.CvL.adaptive.Rd
@@ -219,9 +225,10 @@ fd800b8c4e6797a30afdab5874c1af51 *man/bw.abram.ppp.Rd
 0ae873aa45b62350fee2766299ec65d7 *man/bw.frac.Rd
 ee2f9ebe620221fd8dd650752b9fa4e8 *man/bw.optim.object.Rd
 b5cd59d3d8e956e93cc5f92880ef8d30 *man/bw.pcf.Rd
-4ce4ae5c7c91f001da6f781d509cdf4a *man/bw.ppl.Rd
+ca8bc57d72f6c4722a9f2c5c2aa2f903 *man/bw.ppl.Rd
 536f7ec8a45b6ffa3c08bde544e702e7 *man/bw.pplHeat.Rd
 1ef4f009993757931a18aa0a4924a213 *man/bw.relrisk.Rd
+100615c80b97ade0cf054a61b1843e3d *man/bw.relriskHeatppp.Rd
 20b4fc928bc6de12b13281cdfbff767e *man/bw.scott.Rd
 2eba62af96953eb5e04d83c489b5f7f3 *man/bw.smoothppp.Rd
 41a36343163ce6de22ec851dcfa1dc73 *man/bw.stoyan.Rd
@@ -339,6 +346,7 @@ d9273900fb3ff4f7a5f54d4b162d7345 *man/rat.Rd
 e2068459e97d0d2300ae006d84855e0e *man/reload.or.compute.Rd
 4e5b944e97f48008b6f7ec11c9ae5cc1 *man/relrisk.Rd
 f31a90a8d607012c58b4b0211ae3949b *man/relrisk.ppp.Rd
+9ad712cbfbdbb352c537f6df039428d4 *man/relriskHeat.Rd
 d78b71b1a3a36882c262276bfb783c87 *man/rho2hat.Rd
 1fd10961c689d3f2d51b4661d2d5cfef *man/rhohat.Rd
 8d5adcf98a67cefc5a4e5be3ae960de8 *man/roc.Rd
