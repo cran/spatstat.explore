@@ -1,6 +1,6 @@
 Package: spatstat.explore
-Version: 3.3-3
-Date: 2024-10-22
+Version: 3.3-4
+Date: 2025-01-08
 Title: Exploratory Data Analysis for the 'spatstat' Family
 Authors@R: c(person("Adrian", "Baddeley", 
                     role = c("aut", "cre", "cph"),
@@ -76,7 +76,7 @@ URL: http://spatstat.org/
 NeedsCompilation: yes
 ByteCompile: true
 BugReports: https://github.com/spatstat/spatstat.explore/issues
-Packaged: 2024-10-22 06:59:23 UTC; adrian
+Packaged: 2025-01-08 09:42:39 UTC; adrian
 Author: Adrian Baddeley [aut, cre, cph]
     (<https://orcid.org/0000-0001-9499-8382>),
   Rolf Turner [aut, cph] (<https://orcid.org/0000-0001-5521-5218>),
@@ -103,4 +103,4 @@ Author: Adrian Baddeley [aut, cre, cph]
   Rasmus Plenge Waagepetersen [ctb],
   Hangsheng Wang [ctb]
 Repository: CRAN
-Date/Publication: 2024-10-22 07:50:02 UTC
+Date/Publication: 2025-01-08 11:00:02 UTC

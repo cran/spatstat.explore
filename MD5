@@ -1,6 +1,6 @@
-89dfaf42e0603a096c14452dc9f6e3ab *DESCRIPTION
+d8caad495046a479387999e91c9bd57b *DESCRIPTION
 f1ffad61656618b9e763c7f3a9e6351e *NAMESPACE
-3d7b3d1cb402f411c0d03d9fc96c69e3 *NEWS
+5f268f7b439d52650540d1f424cf240b *NEWS
 d6e3392a80a6e943f6926bab3ce68711 *R/FGmultiInhom.R
 f85ebd958263c02958f6bc1339b3509a *R/Fest.R
 6a6553b98f4929fbabbc24fbdfa7c5ce *R/First.R
@@ -115,7 +115,7 @@ b60fe677fcc1db9c521eb54fc0b10a79 *R/rhohat.R
 120ceb4ce9bb0d6104028f1bc3f38d84 *R/rose.R
 bc2341bd181171d63a0df581954e08fd *R/rotmean.R
 fed45946a2a3afc131d4d46e70ae6084 *R/scanstat.R
-6e8534ef6492e00b8201deb17ba59fe2 *R/scriptUtils.R
+a6eaba9f8161fa3ed032ca1f572a37f5 *R/scriptUtils.R
 f91342c5f456f5533b80836918f60120 *R/sdr.R
 2502c4f4e71342740ae4b1820460167e *R/segtest.R
 048ef0497b1b7b5b715a35c0d88bd4f9 *R/sharpen.R
@@ -135,8 +135,8 @@ b16dfa38099fa525f0c611bfb8e549c9 *R/thresholding.R
 f69e6cd021b03289f2d962c648702622 *R/varblock.R
 95abec834b4d080fa0b611add9bac836 *R/wtdclosepair.R
 f2d49fc8f50fef7f76bcb3fc7f34efb4 *inst/CITATION
-bfc154ba9aeb92a42d8a9903c727a6a6 *inst/doc/packagesizes.txt
-bfc154ba9aeb92a42d8a9903c727a6a6 *inst/info/packagesizes.txt
+6dcf0b8756121227edefe758124fb898 *inst/doc/packagesizes.txt
+6dcf0b8756121227edefe758124fb898 *inst/info/packagesizes.txt
 0092397ec1b97793f1a26f880f3b979f *man/Emark.Rd
 5e53668c16bf9ab608fe89f038029027 *man/Extract.fasp.Rd
 e50f40eb875c124095941fc99a486f36 *man/Extract.fv.Rd
@@ -343,7 +343,7 @@ a0059ae9ec4770fc7f7760eb11e28344 *man/pool.fv.Rd
 018a2b681041c642ba087e77cf437669 *man/radcumint.Rd
 d9273900fb3ff4f7a5f54d4b162d7345 *man/rat.Rd
 211bf373b5eb03462397d529b085f67a *man/rectcontact.Rd
-e2068459e97d0d2300ae006d84855e0e *man/reload.or.compute.Rd
+4be08e9b6452b466095d7fed03d83af3 *man/reload.or.compute.Rd
 4e5b944e97f48008b6f7ec11c9ae5cc1 *man/relrisk.Rd
 f31a90a8d607012c58b4b0211ae3949b *man/relrisk.ppp.Rd
 9ad712cbfbdbb352c537f6df039428d4 *man/relriskHeat.Rd
