@@ -225,7 +225,7 @@ CressieReadStatistic(OBS,EXP,lambda,normalise,named)
 CressieReadSymbol(lambda)
 CressieReadName(lambda)
 cutoff2Dkernel(kernel, sigma, varcov, \dots, scalekernel, cutoff, fatal)
-CVforPCF(bw, stuff)
+CVforPCF(BW, stuff)
 Deviation(x, ref, leaveout, n, xi)
 densitycrossEngine(Xdata, Xquery, sigma, \dots,
                     kernel, scalekernel,
@@ -271,6 +271,7 @@ envelopeTest(X, \dots, exponent, alternative,
   observed, theory, funX, nsim, nsim2, jsim, jsim.mean,
   type, alternative, scale, clamp, csr, use.theory, nrank, ginterval, nSD,
   savefuns, check, Yname, argname, arg.desc,
+  fname.orig, transform,
   do.pwrong, weights, precomputed, gaveup)
 evaluateCovariate(covariate, locations, \dots)
 evaluateCovariateAtPixels(covariate, locations, \dots,
@@ -318,7 +319,7 @@ localKmultiEngine(X, from, to,
 localpcfengine(X, \dots, delta, rmax, nr, stoyan, lambda, rvalue)
 localpcfmatrix(X, i, \dots, lambda, delta, rmax, nr, stoyan)
 lookup2DkernelInfo(kernel)
-makefvlabel(op, accent, fname, sub, argname)
+makefvlabel(op, accent, fname, sub, argname, pre, post)
 maskLaslett(X, \dots, eps, dimyx, xy, rule.eps, oldX, verbose, plotit)
 match2DkernelName(kernel)
 mctestSigtraceEngine(R, devdata, devsim, \dots,
@@ -414,7 +415,8 @@ second.moment.calc(x, sigma, edge, what, \dots,
 second.moment.engine(x, sigma, edge, what, \dots,
       kernel, scalekernel, kerpow,
       obswin, varcov, npts, debug, fastgauss)
-sewpcf(d, w, denargs, lambda2area, divisor)
+sewpcf(d, w, denargs, lambda2area, divisor,
+       zerocor, fast, convert, adaptive, tau, gref, Transform)
 sewsmod(d, ff, wt, Ef, rvals, method="smrep", \dots, nwtsteps=500)
 \method{shift}{quadrattest}(X, \dots)
 simulrecipe(type, expr, envir, csr, pois, constraints)
