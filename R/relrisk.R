@@ -3,7 +3,7 @@
 #
 #   Estimation of relative risk
 #
-#  $Revision: 1.69 $  $Date: 2025/03/15 09:34:21 $
+#  $Revision: 1.73 $  $Date: 2025/04/06 10:39:22 $
 #
 
 relrisk <- function(X, ...) UseMethod("relrisk")
@@ -13,10 +13,11 @@ relrisk.ppp <- local({
   relrisk.ppp <- function(X, sigma=NULL, ..., 
                           at=c("pixels", "points"),
                           weights = NULL, varcov=NULL, 
-                          relative=FALSE,
+                          relative=FALSE, normalise=FALSE,
                           adjust=1, edge=TRUE, diggle=FALSE,
                           se=FALSE, wtype=c("value", "multiplicity"),
-                          casecontrol=TRUE, control=1, case, fudge=0) {
+                          casecontrol=TRUE, control=1, case,
+                          shrink=0, fudge=0) {
     stopifnot(is.ppp(X))
     stopifnot(is.multitype(X))
     control.given <- !missing(control)
@@ -45,8 +46,42 @@ relrisk.ppp <- local({
                     if(ntypes==2) "casecontrol=FALSE" else
                     "there are more than 2 types of points"))
     }
-    ## fudge constant
-    if(missing(fudge) || is.null(fudge)) {
+    
+    ## initialise error report
+    uhoh <- NULL
+    ## prepare for analysis
+    uX <- unmark(X)
+    Y <- split(X)
+    splitweights <-
+      if(weighted) split(weights, marx) else rep(list(NULL), ntypes)
+
+    #' normalisation
+    if(normalise) {
+      if(weighted) {
+        #' total weight of points of each type
+        weightsums <- sapply(splitweights, sum, na.rm=TRUE)
+      } else {
+        #' number of points of each type
+        weightsums <- as.integer(table(marx))
+      }
+    }
+    
+    ## compute bandwidth (default bandwidth selector is bw.relrisk)
+    ker <- resolve.2D.kernel(...,
+                             sigma=sigma, varcov=varcov, adjust=adjust,
+                             bwfun=bw.relrisk, x=X)
+    sigma <- ker$sigma
+    varcov <- ker$varcov
+    if(bandwidth.is.infinite(sigma))
+      edge <- FALSE
+    SmoothPars <- resolve.defaults(list(sigma=sigma, varcov=varcov, at=at,
+                                        edge=edge, diggle=diggle),
+                                   list(...))
+    kernel <- SmoothPars$kernel %orifnull% "gaussian"
+
+    ## shrinkage term
+    ## (a) 'fudge' - constant - rarely used
+    if(missing(fudge) || (length(fudge) == 0)) {
       fudge <- rep(0, ntypes)
     } else {
       check.nvector(fudge, ntypes,
@@ -55,25 +90,26 @@ relrisk.ppp <- local({
       if(length(fudge) == 1)
         fudge <- rep(fudge, ntypes)
     }
-    ## initialise error report
-    uhoh <- NULL
-    ## prepare for analysis
-    Y <- split(X) 
-    splitweights <- if(weighted) split(weights, marx) else rep(list(NULL), ntypes)
-    uX <- unmark(X)
-    ## compute bandwidth (default bandwidth selector is bw.relrisk)
-    ker <- resolve.2D.kernel(...,
-                             sigma=sigma, varcov=varcov, adjust=adjust,
-                             bwfun=bw.relrisk, x=X)
-    sigma <- ker$sigma
-    varcov <- ker$varcov
-
-    ## determine smoothing parameters   
-    if(bandwidth.is.infinite(sigma))
-      edge <- FALSE
-    SmoothPars <- resolve.defaults(list(sigma=sigma, varcov=varcov, at=at,
-                                        edge=edge, diggle=diggle),
-                                   list(...))
+    ## (b) shrinkage factor - multiple of K(0) as used by Bithell
+    if(missing(shrink) || (length(shrink) == 0)) {
+      shrink <- rep(0, ntypes)
+    } else {
+      check.nvector(shrink, ntypes,
+                    things="types of points", oneok=TRUE, vname="shrink")
+      stopifnot(all(shrink >= 0))
+      if(length(shrink) == 1)
+        shrink <- rep(shrink, ntypes)
+      ## rescale
+      K0 <- evaluate2Dkernel(kernel, 0, 0, sigma=sigma, varcov=varcov)
+      shrink <- shrink * K0
+      if(!relative) {
+        #' for spatially varying probabilities, multiply by average probability
+        pbar <- table(marx)/length(marx)
+        shrink <- shrink * pbar
+      }
+    }
+    fudge <- fudge + shrink
+    
     ## threshold for 0/0
     tinythresh <- 8 * .Machine$double.eps
     ## 
@@ -254,6 +290,13 @@ relrisk.ppp <- local({
         if(!control.given) 
           icontrol <- 3 - icase
       }
+      #' normalisation factor
+      normfactor <- if(!normalise) 1 else
+                    if(relative) {
+                      weightsums[icontrol]/weightsums[icase]
+                    } else {
+                      sum(weightsums)/weightsums[icase]
+                    }
       ## compute ......
       switch(at,
              pixels = {
@@ -278,16 +321,22 @@ relrisk.ppp <- local({
                  pcase[nbg] <- closecase[nbg]
                }
                if(!relative) {
+                 if(normalise)
+                   pcase <- normfactor * pcase
                  if(!se) {
                    result <- pcase
                  } else {
                    Vcase <- Veach[[icase]]
                    NUM <- eval.im(Vcase * (1-2*pcase) + Vall * pcase^2)
                    SE <- eval.im(sqrt(pmax(NUM, 0))/Dall)
+                   if(normalise) 
+                     SE  <- normfactor * SE
                    result <- solist(estimate=pcase, SE=SE)
                  }
                } else {
                  rcase <- eval.im(ifelse(pcase < 1, pcase/(1-pcase), NA))
+                 if(normalise) 
+                   rcase <- normfactor * rcase
                  if(!se) {
                    result <- rcase
                  } else {
@@ -296,6 +345,8 @@ relrisk.ppp <- local({
                    Dctrl <- Deach[[icontrol]]
                    NUM <- eval.im(Vcase + Vctrl * rcase^2)
                    SE <- eval.im(sqrt(pmax(NUM, 0))/Dctrl)
+                   if(normalise)
+                     SE  <- normfactor * SE
                    result <- solist(estimate=rcase, SE=SE)
                  }
                }
@@ -317,20 +368,28 @@ relrisk.ppp <- local({
                  pcase[nbg] <- as.integer(nntype[nbg] == icase)
                }
                if(!relative) {
+                 if(normalise) 
+                   pcase <- normfactor * pcase
                  if(!se) {
                    result <- pcase
                  } else {
                    NUM <- Veach[,icase] * (1-2*pcase) + Vall * pcase^2
                    SE <- sqrt(pmax(NUM, 0))/Dall
+                   if(normalise) 
+                     SE <- normfactor * SE
                    result <- list(estimate=pcase, SE=SE)
                  }
                } else {
                  rcase <- ifelse(pcase < 1, pcase/(1-pcase), NA)
+                 if(normalise) 
+                   rcase <- normfactor * rcase
                  if(!se) {
                    result <- rcase
                  } else {
                    NUM <- Veach[,icase] + Veach[,icontrol] * rcase^2
                    SE <- sqrt(pmax(NUM, 0))/Deach[,icontrol]
+                   if(normalise) 
+                     SE <- normfactor * SE
                    result <- list(estimate=rcase, SE=SE)
                  }
                }
@@ -350,6 +409,13 @@ relrisk.ppp <- local({
         } else
           stop(paste("Unrecognised format for argument", sQuote("control")))
       }
+      #' normalisation factor
+      normfactors <- if(!normalise) rep(1, ntypes) else
+                     if(relative) {
+                       weightsums[icontrol]/weightsums
+                     } else {
+                       sum(weightsums)/weightsums
+                     }
       switch(at,
              pixels={
                #' Ops.imagelist not yet working
@@ -375,6 +441,10 @@ relrisk.ppp <- local({
                    probs[[k]][nbg] <- (typennsub == k)
                }
                if(!relative) {
+                 if(normalise) {
+                   for(i in 1:ntypes)
+                     probs[[i]] <- normfactors[i] * probs[[i]]
+                 }
                  if(!se) {
                    result <- probs
                  } else {
@@ -382,7 +452,10 @@ relrisk.ppp <- local({
                    for(i in 1:ntypes) {
                      NUM <- (Veach[[i]] * (1 - 2 * probs[[i]])
                              + Vall * probs[[i]]^2)
-                     SE[[i]] <- eval.im(sqrt(pmax(NUM, 0))/Dall)
+                     SE.i <- eval.im(sqrt(pmax(NUM, 0))/Dall)
+                     if(normalise)
+                       SE.i <- normfactors[i] * SE.i
+                     SE[[i]] <- SE.i
                    }
                    SE <- as.solist(SE)
                    names(SE) <- types
@@ -392,6 +465,10 @@ relrisk.ppp <- local({
                  risks <- as.solist(lapply(probs,
                                            divideifpositive,
                                            d = probs[[icontrol]]))
+                 if(normalise) {
+                   for(i in 1:ntypes)
+                     risks[[i]] <- normfactors[i] * risks[[i]]
+                 }
                  if(!se) {
                    result <- risks
                  } else {
@@ -400,7 +477,10 @@ relrisk.ppp <- local({
                    SE <- list()
                    for(i in 1:ntypes) {
                      NUM <- Veach[[i]] + Vctrl * risks[[i]]^2
-                     SE[[i]] <- eval.im(sqrt(pmax(NUM, 0))/Dctrl)
+                     SE.i <- eval.im(sqrt(pmax(NUM, 0))/Dctrl)
+                     if(normalise)
+                       SE.i <- normfactors[i] * SE.i
+                     SE[[i]] <- SE.i
                    }
                    SE <- as.solist(SE)
                    names(SE) <- types
@@ -426,21 +506,29 @@ relrisk.ppp <- local({
                  probs[badrow, ] <- (typenn == col(result))[badrow, ]
                }
                if(!relative) {
+                 if(normalise)
+                   probs <- normfactors * probs
                  if(!se) {
                    result <- probs
                  } else {
                    NUM <- Veach * (1-2*probs) + Vall * probs^2
                    SE <- sqrt(pmax(NUM, 0))/Dall
+                   if(normalise)
+                     SE <- normfactors * SE
                    result <- list(estimate=probs, SE=SE)
                 }
                } else {
                  risks <- probs/probs[,icontrol]
+                 if(normalise)
+                   risks <- normfactors * risks
                  if(!se) {
                    result <- risks
                  } else {
                    NUM <- Veach + Veach[,icontrol] * risks^2
                    NUM[,icontrol] <- 0
                    SE <- sqrt(pmax(NUM, 0))/Deach[,icontrol]
+                   if(normalise)
+                     SE <- normfactors * SE
                    result <- list(estimate=risks, SE=SE)
                  }
                }
@@ -471,7 +559,7 @@ relrisk.ppp <- local({
   reciprocal <- function(x) 1/x
 
   divideifpositive <- function(z, d) { eval.im(ifelse(d > 0, z/d, NA)) }
-  
+
   relrisk.ppp
 })
 

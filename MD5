@@ -1,6 +1,6 @@
-273c31c7fe8c76516eae92cf64b6a1ea *DESCRIPTION
-814172db84e1ac7cde9a64606af7ee53 *NAMESPACE
-5037cc46e486e0a7ab3059bc09e9370a *NEWS
+33184d6baf1fe002316d3f6f32278711 *DESCRIPTION
+e63ae82bcb4557ef6cc4d455c5e6aba0 *NAMESPACE
+56dcca847385ef4a4ee12c3229b7b8b1 *NEWS
 d6e3392a80a6e943f6926bab3ce68711 *R/FGmultiInhom.R
 f85ebd958263c02958f6bc1339b3509a *R/Fest.R
 6a6553b98f4929fbabbc24fbdfa7c5ce *R/First.R
@@ -52,7 +52,7 @@ f7445098e81c71c6d5d13f69683790aa *R/bw.stoyan.R
 aed260eceb31a62a0983c9df71e254fc *R/compileCDF.R
 c8cdb3cc1e843a19657ad09da27f0922 *R/compileK.R
 bb22386cb65bd41b9c346005f7cd04c3 *R/dclftest.R
-e9a5b4ccfe56f19269bea27d74c1dfdb *R/density.ppp.R
+6b4f8fc7ec1533d5b10ed6b3a037f88d *R/density.ppp.R
 d95e6940ff6258421be43ebd611f6d15 *R/density.psp.R
 458c5b7190433cf6e4f4fc8035cea9ac *R/densityAdaptiveKernel.ppp.R
 fa8ff7ad73f23ddf425a3ea5e3610974 *R/densityHeat.ppp.R
@@ -110,7 +110,7 @@ d06c9bdab82a9d64ccabe3154e91bcb9 *R/ppqq.R
 63b86fe8a7dd85b6e12aa57d18db819b *R/quadrattest.R
 3f87aec78c984221b6c69e10f4a488ea *R/radcum.R
 0f733c947fd26f920f15f62d7b78f3ae *R/rat.R
-c8e53e43147c3832d93872f545b31183 *R/relrisk.R
+a3981adff67fc0df844eb65a4c20c362 *R/relrisk.R
 233fc7cb44c966736edd58bee84e1670 *R/relriskHeat.R
 292ad0ad6710c91248962adec12d3a61 *R/resolve.lambda.R
 e9e1486502e4d6dc502b69bdc59e4ebd *R/rho2hat.R
@@ -123,7 +123,7 @@ f91342c5f456f5533b80836918f60120 *R/sdr.R
 2502c4f4e71342740ae4b1820460167e *R/segtest.R
 048ef0497b1b7b5b715a35c0d88bd4f9 *R/sharpen.R
 c0e7adf01137747788fad043b581c8e7 *R/sigtrace.R
-140bcba3e7b1618af06326c0f0d96f0f *R/smooth.ppp.R
+721980c2f3be2e3016a27c95f97b12d7 *R/smooth.ppp.R
 e5f576f6c283080131987b5c05a58794 *R/smoothfun.R
 8f634e368fec6ab9183225c1ed0bd852 *R/smoothfv.R
 562a5f049aa85ee2a7c08e55d4d4c867 *R/spatcov.R
@@ -138,8 +138,8 @@ b16dfa38099fa525f0c611bfb8e549c9 *R/thresholding.R
 f69e6cd021b03289f2d962c648702622 *R/varblock.R
 95abec834b4d080fa0b611add9bac836 *R/wtdclosepair.R
 f2d49fc8f50fef7f76bcb3fc7f34efb4 *inst/CITATION
-5c802fbfbb019724ad2693bdbd5e8506 *inst/doc/packagesizes.txt
-5c802fbfbb019724ad2693bdbd5e8506 *inst/info/packagesizes.txt
+b050a2e5271fe2460ce56747336e546f *inst/doc/packagesizes.txt
+b050a2e5271fe2460ce56747336e546f *inst/info/packagesizes.txt
 0092397ec1b97793f1a26f880f3b979f *man/Emark.Rd
 5e53668c16bf9ab608fe89f038029027 *man/Extract.fasp.Rd
 e50f40eb875c124095941fc99a486f36 *man/Extract.fv.Rd
@@ -195,7 +195,7 @@ c6bea72f0a3afd9e60f3aac9d0b41048 *man/Math.fv.Rd
 3856350ef8ce867f1b9fa855082b74f4 *man/PPversion.Rd
 ce2f8104116810b2735dd24e878e5f01 *man/Smooth.Rd
 e70fc1f8281705102f2c381c23f125fb *man/Smooth.fv.Rd
-c3f095e440dfecd3abc849a6c403b61a *man/Smooth.ppp.Rd
+1cf9d87343d86fd5d9fd01bfa72a0311 *man/Smooth.ppp.Rd
 e5ad9be9eac0f92b2ebbdc02f558086d *man/Smooth.ssf.Rd
 06015a55b03f35dec500be3797d4c14d *man/SmoothHeat.Rd
 774d0d701731ff025cb79bc5ae817004 *man/SmoothHeat.ppp.Rd
@@ -237,7 +237,7 @@ ca8bc57d72f6c4722a9f2c5c2aa2f903 *man/bw.ppl.Rd
 1ef4f009993757931a18aa0a4924a213 *man/bw.relrisk.Rd
 100615c80b97ade0cf054a61b1843e3d *man/bw.relriskHeatppp.Rd
 20b4fc928bc6de12b13281cdfbff767e *man/bw.scott.Rd
-2eba62af96953eb5e04d83c489b5f7f3 *man/bw.smoothppp.Rd
+1e676e00bd5f2f69f74bec5824f9aa9c *man/bw.smoothppp.Rd
 3b9bfd79ff433d411c9d009ba82c7609 *man/bw.stoyan.Rd
 d56a6cca28857aed4da07989d3ff87ca *man/cdf.test.Rd
 c9d72cc2b707dc4cdc8a091441c0330e *man/circdensity.Rd
@@ -353,7 +353,7 @@ d9273900fb3ff4f7a5f54d4b162d7345 *man/rat.Rd
 211bf373b5eb03462397d529b085f67a *man/rectcontact.Rd
 4be08e9b6452b466095d7fed03d83af3 *man/reload.or.compute.Rd
 4e5b944e97f48008b6f7ec11c9ae5cc1 *man/relrisk.Rd
-f31a90a8d607012c58b4b0211ae3949b *man/relrisk.ppp.Rd
+947a737605621850227d485ce2ecdd46 *man/relrisk.ppp.Rd
 9ad712cbfbdbb352c537f6df039428d4 *man/relriskHeat.Rd
 d78b71b1a3a36882c262276bfb783c87 *man/rho2hat.Rd
 1fd10961c689d3f2d51b4661d2d5cfef *man/rhohat.Rd
@@ -369,7 +369,7 @@ c85ea6c89322a71c3c8671f0bfe4603b *man/scan.test.Rd
 0a905db151e2aa74c4c7799117673407 *man/spatcov.Rd
 53c11c5c15e762aa32ff8ca3cc792cfa *man/spatialcdf.Rd
 228b320547756b45610d6b8ef91eb802 *man/spatstat.explore-deprecated.Rd
-1f15f0d9277247326a11f7be0074213f *man/spatstat.explore-internal.Rd
+ab00b31adf09110e9aec7fb43b2a2723 *man/spatstat.explore-internal.Rd
 afe0355b0c3e2422cd409d61b56d1abd *man/spatstat.explore-package.Rd
 5469878df5bd09c57fdbb517b17310e3 *man/ssf.Rd
 5017da60c51db6c67b0788951efb3199 *man/stienen.Rd
@@ -428,9 +428,9 @@ b525f1b5e6754c376bc5107565b3dbcb *src/ripleybox.h
 5c127a9d5ddeaee8cc8f34b32218a3a5 *src/yesno.h
 39c4b4cba525955d7a920f85e3124fe8 *tests/funky.tab
 b51217edee1da528ea36a1b80ad13aff *tests/testsAtoC.R
-ee122216ab3bbda2a7fd04e9173c6ec8 *tests/testsD.R
+22ea3d25c332d9e1267e04695f22b806 *tests/testsD.R
 d2b871272db19837971257b6750f1736 *tests/testsEtoF.R
-8b7ee3178b922bcae4d967bf2fa45b57 *tests/testsGtoJ.R
+9c0808e3dd53a63f6aa1fa37c68d829d *tests/testsGtoJ.R
 6590c74f58138aaf80a04f9acc99eef9 *tests/testsK.R
 aa5ffbe20b3d506eceb085928b774d72 *tests/testsL.R
 6b33418edafbfd534a28bc326c976706 *tests/testsM.R

@@ -261,9 +261,9 @@ local({
   }
   if(ALWAYS) {
     ## underflow example from stackoverflow!
-    funky <- scanpp("funky.tab", owin(c(4, 38), c(0.3, 17)))
-    P <- relrisk(funky, 0.5)
-    R <- relrisk(funky, 0.5, relative=TRUE)
+#    funky <- scanpp("funky.tab", owin(c(4, 38), c(0.3, 17)))
+#    P <- relrisk(funky, 0.5)
+#    R <- relrisk(funky, 0.5, relative=TRUE)
   }
   ## more than 2 types
   if(ALWAYS) {
@@ -303,6 +303,10 @@ local({
     stroke(sigma=Inf)
     stroke(varcov1=diag(c(1,1))) # 'anisotropic' code
   }
+  if(ALWAYS) {
+    #' new code for shrinkage estimate
+    stroke(5, shrink=4, FUN=FALSE)
+  }
   if(FULLTEST) {
     Z <- as.im(function(x,y){abs(x)+1}, Window(longleaf))
     stroke(5, weights=Z)
@@ -329,15 +333,17 @@ local({
   
   niets <- markmean(longleaf, 9)
   
-  strike <- function(..., Y=finpines) {
+  strike <- function(..., Y=finpines, FUN=TRUE) {
     Z <- Smooth(Y, ..., at="pixels")
     Z <- Smooth(Y, ..., at="points", leaveoneout=TRUE)
     Z <- Smooth(Y, ..., at="points", leaveoneout=FALSE)
-    f <- Smoothfun(Y, ...)
-    f(4, 1)
-    f(Y[1:2])
-    f(Y[FALSE])
-    U <- as.im(f)
+    if(FUN) {
+      f <- Smoothfun(Y, ...)
+      f(4, 1)
+      f(Y[1:2])
+      f(Y[FALSE])
+      U <- as.im(f)
+    }
     return(invisible(NULL))
   }
   if(ALWAYS) {
@@ -346,6 +352,10 @@ local({
     strike(varcov=diag(c(1.2, 2.1)))
     strike(sigma=1e-6)
     strike(sigma=Inf)
+  }
+  if(ALWAYS) {
+    #' new code for shrinkage estimate
+    strike(sigma=1.5, shrink=4, FUN=FALSE)
   }
   if(FULLTEST) {
     strike(sigma=1e-6, kernel="epa")
@@ -448,6 +458,10 @@ local({
     if(abs(bi-ba) > 0.001)
       stop(paste("Inconsistency in bw.smoothppp: isotropic =", bi,
                  "!=", ba, "= anisotropic"))
+    ## Cross-validation from training to testing sets
+    a <- bw.smoothppp(longleaf, test=(marks(longleaf) < 30))
+    a <- bw.smoothppp(longleaf, train=square(c(100,200)))
+    a <- bw.smoothppp(longleaf, train=c(FALSE,TRUE), test=c(TRUE,FALSE))
   }
 })
 

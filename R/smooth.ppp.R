@@ -3,7 +3,7 @@
 #
 #  Smooth the marks of a point pattern
 # 
-#  $Revision: 1.90 $  $Date: 2024/06/09 00:02:42 $
+#  $Revision: 1.103 $  $Date: 2025/05/13 07:01:00 $
 #
 
 Smooth <- function(X, ...) {
@@ -24,7 +24,8 @@ Smooth.ppp <- function(X, sigma=NULL, ...,
                        se=FALSE,
                        loctype=c("random", "fixed"),
                        wtype=c("multiplicity", "importance"),
-                       geometric=FALSE) {
+                       geometric=FALSE,
+                       shrink=0, shrinktype=c("mean", "median")) {
   verifyclass(X, "ppp")
   if(!is.marked(X, dfok=TRUE, na.action="fatal"))
     stop("X should be a marked point pattern", call.=FALSE)
@@ -34,7 +35,8 @@ Smooth.ppp <- function(X, sigma=NULL, ...,
   if(!all(is.finite(as.matrix(marx))))
     stop("Some mark values are Inf, NaN or NA", call.=FALSE)
   univariate <- is.null(dim(marx))
-
+  nc <- if(univariate) 1 else ncol(marx)
+  
   ## options
   at <- pickoption("output location type", at,
                    c(pixels="pixels",
@@ -45,7 +47,6 @@ Smooth.ppp <- function(X, sigma=NULL, ...,
   ## trivial case
   if(nX == 0) {
     cn <- colnames(marks(X))
-    nc <- length(cn)
     switch(at,
            points = {
              Estimate <- if(univariate) numeric(0) else
@@ -184,6 +185,34 @@ Smooth.ppp <- function(X, sigma=NULL, ...,
   }
 
   ## .................. finite bandwidth .............................
+
+  ## shrinkage
+  nc <- if(is.null(dim(marx))) 1 else ncol(marx)
+  if(shrinking <- (!missing(shrink) && (length(shrink) > 0))) {
+    check.nvector(shrink, nc, 
+                  things="columns of marks", oneok=TRUE, vname="shrink")
+    stopifnot(all(shrink >= 0))
+    if(length(shrink) == 1 && nc > 1)
+      shrink <- rep(shrink, nc)
+    ## Rescale by Kernel at 0
+    K0 <- evaluate2Dkernel(kernel, 0, 0, sigma=sigma, varcov=varcov)
+    shrinkdenom <- shrink * K0
+    ## Numerator shrinkage constant involves mean or median mark 'ybar'
+    shrinktype <- match.arg(shrinktype)
+    marxmat <- if(univariate) matrix(marx, ncol=1) else marx
+    if(weighted) {
+      ybar <- switch(shrinktype,
+                     mean = apply(marxmat, 2, weighted.mean, w=weights),
+                     median = apply(marxmat, 2, weighted.median, w=weights))
+    } else {
+      ybar <- switch(shrinktype,
+                     mean = colMeans(marxmat, na.rm=TRUE),
+                     median = apply(marxmat, 2, median, na.rm=TRUE))
+    }
+    shrinknumer <- shrinkdenom * ybar
+  } else {
+    shrinknumer <- shrinkdenom <- rep(0, nc)
+  }
   
   ## Diggle's edge correction?
   if(diggle && !edge) warning("Option diggle=TRUE overridden by edge=FALSE")
@@ -309,12 +338,12 @@ Smooth.ppp <- function(X, sigma=NULL, ...,
                             weights=weights,
                             edge=edge && diggle, diggle=diggle, # sic
                             at=at, leaveoneout=leaveoneout, positive=TRUE)
-    
-             Vest <- if(at == "points") Vnum/Den^2 else
-                            imagelistOp(Vnum, Den^2, "/")
+
+             Vest <- posify(if(at == "points") Vnum/Den^2 else
+                            imagelistOp(Vnum, Den^2, "/"))
                      
            })
-    SE <- sqrt(Vest)
+    SE <- if(is.solist(Vest)) solapply(Vest, sqrt) else sqrt(Vest)
   }
   
   ##  ------------------------------------------------------------
@@ -366,7 +395,9 @@ Smooth.ppp <- function(X, sigma=NULL, ...,
                                                sigma=sigma, varcov=varcov,
                                                kernel=kernel,
                                                scalekernel=scalekernel,
-                                               edge=FALSE),
+                                               edge=FALSE,
+                                               shrinknumer=shrinknumer,
+                                               shrinkdenom=shrinkdenom),
                                           list(...)))
              },
              pixels={
@@ -393,6 +424,10 @@ Smooth.ppp <- function(X, sigma=NULL, ...,
                                                scalekernel=scalekernel,
                                                edge=FALSE),
                                           list(...)))
+               if(shrinking) {
+                 numerator   <- shrinknumer + numerator
+                 denominator <- shrinkdenom + denominator
+               }
                result <- eval.im(numerator/denominator)
                ## trap small values of denominator
                ## trap NaN and +/- Inf values of result, but not NA
@@ -457,6 +492,26 @@ Smooth.ppp <- function(X, sigma=NULL, ...,
                                       edge=FALSE),
                                  list(...)))
       uhoh <- attr(numerators, "warnings")
+      ## shrinkage estimator
+      if(shrinking) {
+        denominator <- shrinkdenom + denominator
+        switch(at,
+               points = {
+                 if(is.null(dim(numerators))) {
+                   numerators <- numerators + shrinknumer
+                 } else {
+                   ## add shrinknumer[j] to numerators[, j]
+                   numerators <- numerators + shrinknumer[col(numerators)]
+                 }
+               },
+               pixels = {
+                 ## add shrinknumer[j] to numerators[[j]]
+                 numerators <- as.imlist(mapply("+",
+                                                numerators,
+                                                as.list(shrinknumer),
+                                                SIMPLIFY=FALSE))
+               })
+      }
       ## calculate ratios
       switch(at,
              points={
@@ -560,7 +615,8 @@ smoothpointsEngine <- function(x, values, sigma, ...,
                                weights=NULL, varcov=NULL,
                                leaveoneout=TRUE,
                                sorted=FALSE, cutoff=NULL,
-                               debug=FALSE) {
+                               debug=FALSE,
+                               shrinknumer=0, shrinkdenom=0) {
   stopifnot(is.logical(leaveoneout))
 
   if(!is.null(dim(values)))
@@ -573,6 +629,8 @@ smoothpointsEngine <- function(x, values, sigma, ...,
     attr(result, "varcov") <- varcov
     return(result)
   }
+
+  shrinking <- (shrinkdenom != 0)
 
   validate2Dkernel(kernel)
   if(is.character(kernel)) kernel <- match2DkernelName(kernel)
@@ -637,7 +695,7 @@ smoothpointsEngine <- function(x, values, sigma, ...,
   
   if(isgauss &&
      spatstat.options("densityTransform") &&
-     spatstat.options("densityC")) {
+     spatstat.options("densityC") && !shrinking) {
     ## .................. experimental C code .....................
     if(debug)
       cat('Transforming to standard coordinates (densityTransform=TRUE).\n')
@@ -679,7 +737,7 @@ smoothpointsEngine <- function(x, values, sigma, ...,
                PACKAGE="spatstat.explore")
       if(sorted) result <- zz$result else result[oo] <- zz$result
     } else {
-      wtsort <- weights[oo]
+      wtsort <- if(sorted) weights else weights[oo]
       zz <- .C(SE_Gwtsmoopt,
                nxy     = as.integer(npts),
                x       = as.double(xx),
@@ -697,7 +755,7 @@ smoothpointsEngine <- function(x, values, sigma, ...,
       # Use mark of nearest neighbour (by l'Hopital's rule)
       result[nbg] <- values[nnwhich(x)[nbg]]
     }
-  } else if(isgauss && spatstat.options("densityC")) {
+  } else if(isgauss && spatstat.options("densityC") && !shrinking) {
     # .................. C code ...........................
     if(debug)
       cat('Using standard code (densityC=TRUE).\n')
@@ -729,7 +787,7 @@ smoothpointsEngine <- function(x, values, sigma, ...,
                  PACKAGE="spatstat.explore")
         if(sorted) result <- zz$result else result[oo] <- zz$result
       } else {
-        wtsort <- weights[oo]
+        wtsort <- if(sorted) weights else weights[oo]
         zz <- .C(SE_wtsmoopt,
                  nxy     = as.integer(npts),
                  x       = as.double(xx),
@@ -760,7 +818,7 @@ smoothpointsEngine <- function(x, values, sigma, ...,
                  PACKAGE="spatstat.explore")
         if(sorted) result <- zz$result else result[oo] <- zz$result
       } else {
-        wtsort <- weights[oo]
+        wtsort <- if(sorted) weights else weights[oo]
         zz <- .C(SE_awtsmoopt,
                  nxy     = as.integer(npts),
                  x       = as.double(xx),
@@ -838,6 +896,11 @@ smoothpointsEngine <- function(x, values, sigma, ...,
                                               list(...),
                                               list(edge=FALSE)))
     }
+    if(shrinking) {
+      ## shrinkage estimate
+      numerator <- shrinknumer + numerator
+      denominator <- shrinkdenom + denominator
+    }
     if(is.null(uhoh <- attr(numerator, "warnings"))) {
       result <- numerator/denominator
       result <- ifelseXB(is.finite(result), result, NA_real_)
@@ -874,9 +937,11 @@ markvar  <- function(X, sigma=NULL, ..., weights=NULL, varcov=NULL) {
   return(V)
 }
 
-bw.smoothppp <- function(X, nh=spatstat.options("n.bandwidth"),
+bw.smoothppp <- function(X, ...,
+                         nh=spatstat.options("n.bandwidth"),
                          hmin=NULL, hmax=NULL, warn=TRUE,
-                         kernel="gaussian", varcov1=NULL) {
+                         kernel="gaussian", varcov1=NULL,
+                         train=NULL, test=NULL) {
   stopifnot(is.ppp(X))
   stopifnot(is.marked(X))
   if(!is.null(varcov1))
@@ -884,22 +949,47 @@ bw.smoothppp <- function(X, nh=spatstat.options("n.bandwidth"),
   if(is.function(kernel))
     stop("Custom kernel functions are not yet supported in bw.smoothppp")
   X <- coerce.marks.numeric(X)
-  # rearrange in ascending order of x-coordinate (for C code)
-  X <- X[fave.order(X$x)]
-  #
-  marx <- marks(X)
-  dimmarx <- dim(marx)
-  if(!is.null(dimmarx))
-    marx <- as.matrix(as.data.frame(marx))
-  # determine a range of bandwidth values
-#  n <- npoints(X)
+  if(!is.null(train)) {
+    ## training subset (logical vector)
+    train <- ppsubset(X, I=train, Iname='train', fatal=TRUE)
+  }
+  if(!is.null(test)) {
+    ## subset for prediction (logical vector)
+    test <- ppsubset(X, I=test, Iname='test', fatal=TRUE)
+  }
+  ## rearrange in ascending order of x-coordinate (for C code)
+  ord <- fave.order(X$x)
+  X <- X[ord]
+  if(!is.null(train)) train <- train[ord]
+  if(!is.null(test)) test <- test[ord]
+  #' sub-patterns
+  Xtrain <- if(is.null(train)) X else X[train]
+  Xtest  <- if(is.null(test))  X else X[test]
+  #' observed values 
+  ytrain <- marks(Xtrain)
+  ytest  <- marks(Xtest)
+  if(multicolumn <- !is.null(dim(ytrain))) {
+    ytrain <- as.matrix(as.data.frame(ytrain))
+    ytest  <- as.matrix(as.data.frame(ytest))
+  }
+  trainIndicator <- if(is.null(train)) NULL else as.numeric(train)
+  #' determine a range of bandwidth values
   if(is.null(hmin) || is.null(hmax)) {
     W <- Window(X)
     d <- diameter(as.rectangle(W))
     # Stoyan's rule of thumb 
     stoyan <- bw.stoyan(X)
-    # rule of thumb based on nearest-neighbour distances
-    nnd <- nndist(unique(X))
+    #' rule of thumb based on nearest-neighbour distances
+    if(classic <- (is.null(test) && is.null(train))) {
+      nnd <- nndist(unique(X))
+    } else {
+      seqX <- seq_len(npoints(X))
+      itrain <- if(is.null(train)) seqX else which(train)
+      itest  <- if(is.null(test))  seqX else which(test)
+      nnd <- nncross(Xtrain, Xtest,
+                     iX=itrain, iY=itest,
+                     what="dist")
+    }
     if(any(ok <- is.finite(nnd) & (nnd > 0))) {
       nnd <- nnd[ok]
     } else {
@@ -912,7 +1002,9 @@ bw.smoothppp <- function(X, nh=spatstat.options("n.bandwidth"),
       nnd    <- nnd/dref
     }
     if(is.null(hmin)) {
-      hmin <- max(1.1 * min(nnd), stoyan/5)
+      hmin <- max(1.1 * min(nnd),
+                  stoyan/5,
+                  if(classic) 0 else quantile(nnd, 0.25))
       hmin <- min(d/8, hmin)
     }
     if(is.null(hmax)) {
@@ -920,24 +1012,29 @@ bw.smoothppp <- function(X, nh=spatstat.options("n.bandwidth"),
       hmax <- min(d/2, hmax)
     }
   } else stopifnot(hmin < hmax)
-  #
+  #' sequence of bandwidth values
   h <- geomseq(from=hmin, to=hmax, length.out=nh)
   cv <- numeric(nh)
-  # 
-  # compute cross-validation criterion
+  #' compute cross-validation criterion
   for(i in seq_len(nh)) {
+    #' Initially predict value at all locations
     if(is.null(varcov1)) {
       yhat <- Smooth(X, sigma = h[i],
+                     weights=trainIndicator,
                      at="points", leaveoneout=TRUE,
                      kernel=kernel, sorted=TRUE)
     } else {
       yhat <- Smooth(X, varcov = (h[i]^2)  * varcov1,
+                     weights=trainIndicator,
                      at="points", leaveoneout=TRUE,
                      kernel=kernel, sorted=TRUE)
     }
-    if(!is.null(dimmarx))
+    if(multicolumn)
       yhat <- as.matrix(as.data.frame(yhat))
-    cv[i] <- mean((marx - yhat)^2)
+    #' Now restrict to test locations only, if required
+    if(!is.null(test))
+      yhat <- if(multicolumn) yhat[test,] else yhat[test]
+    cv[i] <- mean((ytest - yhat)^2)
   }
 
   # optimize
@@ -948,7 +1045,8 @@ bw.smoothppp <- function(X, nh=spatstat.options("n.bandwidth"),
                      warnextreme=warn,
                      hargnames=c("hmin", "hmax"),
                      unitname=if(is.null(varcov1)) unitname(X) else NULL,
-                     template=varcov1, exponent=2)
+                     template=varcov1, exponent=2,
+                     train=train, test=test)
   return(result)
 }
 
@@ -1280,12 +1378,14 @@ VarOfWtdMean <- function(marx, weights) {
   return(V)
 }
 
-DeltaMethodVarOfRatio <- function(num, den, varnum, varden, covnumden) {
+DeltaMethodVarOfRatio <- function(num, den, varnum, varden, covnumden,
+                                  positive=TRUE) {
   Estimate <- num/den
   V <- Estimate^2 * (
     varnum/num^2
     - 2 * covnumden/(num * den)
     + varden/den^2
   )
-  return(V)
+  return(if(positive) posify(V) else V)
 }
+

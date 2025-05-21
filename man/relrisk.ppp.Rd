@@ -14,10 +14,10 @@
 \method{relrisk}{ppp}(X, sigma = NULL, ...,
            at = c("pixels", "points"),
            weights = NULL, varcov = NULL, 
-           relative=FALSE,
+           relative=FALSE, normalise=FALSE,
            adjust=1, edge=TRUE, diggle=FALSE,
            se=FALSE, wtype=c("value", "multiplicity"),
-           casecontrol=TRUE, control=1, case, fudge=0)
+           casecontrol=TRUE, control=1, case, shrink=0, fudge=0)
 }
 \arguments{
   \item{X}{
@@ -56,6 +56,10 @@
     If \code{TRUE}, it computes the    
     \emph{relative risk}, the ratio of probabilities
     of each type relative to the probability of a control.
+  }
+  \item{normalise}{
+    Logical value specifying whether the results should be normalised
+    so that constant risk corresponds to the value 1.
   }
   \item{adjust}{
     Optional. Adjustment factor for the bandwidth \code{sigma}.
@@ -96,11 +100,10 @@
     in a bivariate point pattern. 
     Ignored if there are more than 2 types of points.
   }
-  \item{fudge}{
-    Optional. A single numeric value,
-    or a numeric vector with one entry for each type of point.
-    This value will be added to the estimates
-    of point process intensity, before calculation of the relative risk.
+  \item{shrink,fudge}{
+    Optional factors for shrinkage estimation as proposed by Bithell (1991).
+    Numeric values, or numeric vectors with one entry for each type of
+    point. See Details.
   }
 }
 \details{
@@ -244,6 +247,32 @@
   If \code{relative=FALSE}, the resulting values always lie between 0
   and 1. If \code{relative=TRUE}, the results are either non-negative
   numbers, or the values \code{Inf} or \code{NA}. 
+}
+\section{Shrinkage estimate}{
+  If the argument \code{shrink} is given, the shrinkage
+  estimate proposed by Bithell (1991) is calculated.
+  In this method, a constant value is
+  added to the estimated intensity of the points of each type, before
+  the relative risk calculation is performed. 
+
+  The argument \code{shrink} should be a numeric value, or a numeric vector
+  with one entry for each type of point. All values should be
+  non-negative.
+  
+  The constant added to the estimated intensity of the points of type
+  \code{j} is \code{shrink * K0 * pbar[j]} if
+  \code{relative=FALSE}
+  and \code{shrink * K0} if \code{relative=TRUE},
+  where \code{K0} is the value of the smoothing kernel
+  at the origin, and \code{pbar[j]} is the fraction of points of type
+  \code{j} in the data pattern \code{X}.
+  Bithell's original proposal corresponds to 
+  \code{shrink=4, relative=TRUE}.
+
+  The argument \code{fudge} is rarely used,
+  but is retained for research purposes.
+  It is added to the estimate of the intensity without any rescaling,
+  before the relative risk calculation.
 }
 \section{Standard error}{
   If \code{se=TRUE}, the standard error of the estimate will also be
