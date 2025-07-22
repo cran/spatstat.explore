@@ -1,4 +1,79 @@
 
+        CHANGES IN spatstat.explore VERSION 3.5-2
+
+OVERVIEW
+
+    o Internal fixes.
+    
+
+        CHANGES IN spatstat.explore VERSION 3.5-1
+
+OVERVIEW
+
+    o Tweak documents to satisfy CRAN.
+    
+
+        CHANGES IN spatstat.explore VERSION 3.5-0
+
+OVERVIEW
+
+    o We thank Jakob Jentschke and Suman Rakshit for contributions.
+    
+    o Extension of ROC curves.
+
+    o Shrinkage estimate in Smooth.ppp.
+    
+    o Youden index.
+
+    o Minor improvements and bug fixes.
+
+NEW FUNCTIONS
+
+    o roc.rhohat, roc.cdftest, roc.bermantest
+    Calculate ROC from other kinds of data.
+    
+    o roc.im
+    Calculate ROC from a pixel image such as an estimate of intensity.
+    
+    o youden
+    Youden statistic for ROC curves.
+    
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o cov.im, cor.im
+    Default changed to 'use="complete.obs"'.
+    
+    o roc.ppp
+    New argument 'baseline' allows calculation of ROC relative to a baseline.
+
+    o roc.ppp
+    New argument 'weights' for numerical weights on the data points.
+
+    o roc.ppp
+    New argument 'observations' specifies whether to use the exact point
+    coordinates or pixel presence-absence indicators.
+
+    o roc.ppp
+    New argument 'method' determines the estimation method.
+    New options include a kernel smoothing estimate and a monotone estimate.
+
+    o roc.ppp
+    New arguments 'CI', 'alpha' for calculating confidence intervals.
+
+    o roc.ppp
+    New argument 'subset' specifies a sub-region of the spatial domain
+    in which the ROC should be calculated.
+
+    o Smooth.ppp
+    Shrinkage estimate implemented.
+    New arguments 'shrink' and 'shrinktype'.
+
+    o Smooth.ppp
+    Slight change to algorithm for handling very small bandwidths.
+
+    o SpatialQuantile.ppp, SpatialMedian.ppp
+    Slight change to algorithm for handling very small bandwidths.
+
         CHANGES IN spatstat.explore VERSION 3.4-3
 
 OVERVIEW
