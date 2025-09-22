@@ -1,7 +1,7 @@
 #
 #           Kmeasure.R
 #
-#           $Revision: 1.75 $    $Date: 2023/03/15 13:41:48 $
+#           $Revision: 1.76 $    $Date: 2025/09/22 01:38:02 $
 #
 #     Kmeasure()         compute an estimate of the second order moment measure
 #
@@ -14,7 +14,7 @@
 
 Kmeasure <- function(X, sigma, edge=TRUE, ..., varcov=NULL) {
   stopifnot(is.ppp(X))
-  
+  if(is.NAobject(X)) return(NAobject("im"))
   sigma.given <- !missing(sigma) && !is.null(sigma)
   varcov.given <- !is.null(varcov)
   ngiven <- sigma.given + varcov.given
@@ -47,6 +47,7 @@ second.moment.calc <- function(x, sigma=NULL, edge=TRUE,
                                ...,
                                varcov=NULL, expand=FALSE,
                                obswin, npts=NULL, debug=FALSE) {
+  if(is.NAobject(x)) return(NAobject("im"))
   if(is.null(sigma) && is.null(varcov))
     stop("must specify sigma or varcov")
   obswin.given <- !missing(obswin)
@@ -158,6 +159,7 @@ second.moment.engine <-
            obswin = as.owin(x), varcov=NULL,
            npts=NULL, debug=FALSE, fastgauss=FALSE)
 {
+  if(is.NAobject(x)) return(NAobject("im"))
   what <- match.arg(what)
   validate2Dkernel(kernel)
   obswin.given <- !missing(obswin) && !is.null(obswin)
@@ -526,6 +528,7 @@ second.moment.engine <-
 BartCalc <- function(fY, fK) { Mod(fY)^2 * fK }
   
 Kest.fft <- function(X, sigma, r=NULL, ..., breaks=NULL) {
+  if(is.NAobject(X)) return(NAobject("fv"))
   verifyclass(X, "ppp")
   W <- Window(X)
   lambda <- npoints(X)/area(W)
