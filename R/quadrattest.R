@@ -1,7 +1,7 @@
 #
 #   quadrattest.R
 #
-#   $Revision: 1.70 $  $Date: 2023/07/17 07:38:30 $
+#   $Revision: 1.76 $  $Date: 2025/11/17 10:32:40 $
 #
 
 
@@ -94,12 +94,18 @@ quadrat.testEngine <- function(X, nx, ny,
   normalised <- FALSE
   df.est.implied <- 0
   if(is.null(fit)) {
-    nullname <- "CSR"
-    if(tess$type == "rect") 
-      areas <- outer(diff(tess$xgrid), diff(tess$ygrid), "*")
-    else 
-      areas <- unlist(lapply(tiles(tess), area))
-    fitmeans <- sum(Xcount) * areas/sum(areas)
+    if(is.tess(tess)) {
+      nullname <- "CSR"
+      areas <- tile.areas(tess)
+      fitmeans <- sum(Xcount) * areas/sum(areas)
+    } else if(inherits(tess, "lintess")) {
+      if(!requireNamespace("spatstat.linnet"))
+        stop("To analyse the tessellation, the package spatstat.linnet is required",
+             call.=FALSE)
+      nullname <- "CSR on a network"
+      lenfs <- spatstat.linnet::tile.lengths(tess)
+      fitmeans <- sum(Xcount) * lenfs/sum(lenfs)
+    }
     normalised <- TRUE
     df.est.implied <- 1
   } else if(is.im(fit) || inherits(fit, "funxy")) {
@@ -136,9 +142,20 @@ quadrat.testEngine <- function(X, nx, ny,
     fitmeans <- tapplysum(masses, list(tile=V))
     normalised <- FALSE
     df.est.implied <- length(coef(fit))
-  } else
+  } else if(inherits(fit, "lppm")) {
+    if(!requireNamespace("spatstat.linnet")) 
+      stop("To predict the fitted model, the package spatstat.linnet is required",
+           call.=FALSE)
+    nullname <- paste("fitted Poisson model", sQuote(fitname), "on network")
+    lambda <- predict(fit, type="intensity")
+    means <- integral(lambda, tess)
+    fitmeans <- sum(Xcount) * means/sum(means)
+    normalised <- FALSE
+    df.est.implied <- length(coef(fit))
+  } else {
     stop("fit should be a point process model (ppm or slrm) or pixel image")
-  
+  }
+    
   df <- switch(method,
                Chisq      = length(fitmeans) - df.est %orifnull% df.est.implied,
                MonteCarlo = NULL)    
@@ -179,13 +196,22 @@ quadrat.testEngine <- function(X, nx, ny,
                          alternative=alternative,
                          testname=testblurb, dataname=Xname)
 
-  class(result) <- c("quadrattest", class(result))
+  class(result) <- unique(c("quadrattest", class(result)))
   attr(result, "quadratcount") <- Xcount
   return(result)
 }
 
 CressieReadStatistic <- function(OBS, EXP, lambda=1,
                                  normalise=FALSE, named=TRUE) {
+  if(min(EXP) == 0) {
+    ## avoid 0/0 = NaN
+    bad <- (EXP == 0 & OBS == 0)
+    if(any(bad)) {
+      ok <- !bad
+      EXP <- EXP[ok]
+      OBS <- OBS[ok]
+    }
+  }
   if(normalise) EXP <- sum(OBS) * EXP/sum(EXP)
   y <- if(lambda == 1) sum((OBS - EXP)^2/EXP) else
        if(lambda == 0) 2 * sum(ifelse(OBS > 0, OBS * log(OBS/EXP), 0)) else
@@ -302,7 +328,11 @@ print.quadrattest <- function(x, ...) {
        splat("Quadrats of component tests:")
      }
      x <- as.tess(x)
-     x <- if(is.tess(x)) unmark(x) else solapply(x, unmark)
+     if(is.tess(x)) {
+       x <- unmark(x)
+     } else if(all(sapply(x, is.tess))) {
+       x <- solapply(x, unmark)
+     }
      do.call(print,
              resolve.defaults(list(x=quote(x)),
                               list(...),
@@ -469,7 +499,7 @@ pool.quadrattest <- function(...,
                          alternative=alternative,
                          testname=testname, dataname=Xname)
   # add info
-  class(result) <- c("quadrattest", class(result))
+  class(result) <- unique(c("quadrattest", class(result)))
   attr(result, "tests") <- as.solist(tests)
   # there is no quadratcount attribute 
   return(result)
@@ -492,7 +522,8 @@ extractAtomicQtests <- function(x) {
 as.tess.quadrattest <- function(X) {
   if(is.atomicQtest(X)) {
     Y <- attr(X, "quadratcount")
-    return(as.tess(Y))
+    Z <- attr(Y, "tess")
+    return(Z)
   }
   tests <- extractAtomicQtests(X)
   return(as.solist(lapply(tests, as.tess.quadrattest)))

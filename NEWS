@@ -1,4 +1,44 @@
 
+        CHANGES IN spatstat.explore VERSION 3.6-0
+
+OVERVIEW
+
+    o We thank Lucia Cobo Sanchez and Tilman Davies for contributions.
+
+    o Nearest neighbour counting functions.
+
+    o Tolerance contours for relative risk.
+
+    o Minor improvements and bug fixes.
+
+NEW FUNCTIONS
+
+    o markequal
+    Mark equality function e(r) for multitype point patterns.
+    
+    o nnequal, nncount
+    Summary functions for multitype point patterns
+    based on the types of nearest neighbours.
+
+    o tolcon
+    Tolerance contours for spatial relative risk.
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o markcorr, markconnect, markvario, Emark, Vmark
+    The result now has an attribute 'smooth.args'
+    containing the smoothing parameters used.
+
+BUG FIXES
+
+   o Kmark
+   Calculation was incorrect for multitype patterns (categorical marks).
+   Fixed.
+
+   o as.data.frame.fv
+   Some attributes of x were incorrectly retained.
+   Fixed.
+   
         CHANGES IN spatstat.explore VERSION 3.5-3
 
 OVERVIEW

@@ -6,7 +6,7 @@
 #
 #        compatible.fv()       Check whether two fv objects are compatible
 #
-#     $Revision: 1.42 $     $Date: 2022/01/04 05:30:06 $
+#     $Revision: 1.45 $     $Date: 2025/11/19 07:11:48 $
 #
 
 eval.fv <- local({
@@ -29,14 +29,14 @@ eval.fv <- local({
     }
     vars <- lapply(as.list(varnames), get, envir=envir)
     names(vars) <- varnames
-    # find out which ones are fv objects
-    fvs <- unlist(lapply(vars, is.fv))
+    #' find out which ones are fv objects
+    fvs <- sapply(vars, is.fv)
     nfuns <- sum(fvs)
     if(nfuns == 0)
       stop("No fv objects in this expression")
-    # extract them
+    #' extract them
     funs <- vars[fvs]
-    # restrict to columns identified by 'dotnames'
+    # restrict fv objects to columns identified by 'dotnames'
     if(dotonly) 
       funs <- lapply(funs, restrict.to.dot)
     # map names if instructed
@@ -68,14 +68,28 @@ eval.fv <- local({
     argname <- fvnames(result, ".x")
     nam <- names(result)
     ynames <- nam[nam != argname]
+    #' detect case where a data frame contains all function estimates
+    isspecial <- sapply(vars, is.df.with.columns, desired=ynames)
+    if(anyspecial <- any(isspecial))
+      specials <- vars[isspecial]
     # for each function estimate, evaluate expression
     for(yn in ynames) {
       # extract corresponding estimates from each fv object
       funvalues <- lapply(funs, "[[", i=yn)
       # insert into list of argument values
       vars[fvs] <- funvalues
-      # evaluate
-      result[[yn]] <- eval(e, vars, enclos=envir)
+      #' do the same with data frames that contain the named column
+      if(anyspecial) 
+        vars[isspecial] <- lapply(specials, "[[", i=yn)
+      #' evaluate
+      ryn <- eval(e, vars, enclos=envir)
+      #' should be a single column
+      if(max(1, ncol(ryn)) > 1)
+        stop(paste("Internal error in eval.fv: calculations for column",
+                   sQuote(yn),
+                   "yielded multiple columns of data"),
+             call.=FALSE)
+      result[[yn]] <- ryn
     }
     if(!relabel)
       return(result)
@@ -170,7 +184,10 @@ eval.fv <- local({
     return(x)
   }
   isblank <-  function(z) { !any(nzchar(z)) }
-  
+  is.df.with.columns <- function(x, desired) {
+    ## return TRUE for a data frame which contains all the desired columns
+    is.data.frame(x) && !is.fv(x) && all(desired %in% names(x))
+  }
   eval.fv
 })
     
