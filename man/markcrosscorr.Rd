@@ -11,7 +11,9 @@
 \usage{
   markcrosscorr(X, r = NULL,
                 correction = c("isotropic", "Ripley", "translate"),
-                method = "density", \dots, normalise = TRUE, Xname = NULL)
+                method = "density", \dots,
+                rmax = NULL, 
+                weights=NULL, normalise = TRUE, Xname = NULL)
 }
 \arguments{
   \item{X}{The observed point pattern.
@@ -41,6 +43,17 @@
     Arguments passed to the density estimation routine
     (\code{\link{density}}, \code{\link{loess}} or \code{sm.density})
     selected by \code{method}.
+  }
+  \item{rmax}{
+    Optional. Maximum desired value of the argument \eqn{r}.
+    A single numeric value. There is a sensible default.
+  }
+  \item{weights}{
+    Optional. Numeric weights associated with each data point in \code{X}. 
+    A numeric vector, a pixel image, or a \code{function(x,y)}.
+    Alternatively, an \code{expression} to be evaluated to yield the
+    weights; the expression may involve the variables
+    \code{x,y,marks} representing the coordinates and marks of\code{X}.
   }
   \item{normalise}{
     If \code{normalise=FALSE},

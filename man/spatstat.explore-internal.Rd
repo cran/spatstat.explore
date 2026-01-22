@@ -61,6 +61,7 @@
 \alias{f3Cengine}
 \alias{findbestlegendpos}
 \alias{findcbind}
+\alias{fitted.exactppm}
 \alias{flatfname}
 \alias{FormatFaspFormulae}
 \alias{fvexprmap}
@@ -319,6 +320,7 @@ f3engine(x, y, z, box, vside, range, nval, correction)
 f3Cengine(x, y, z, box, vside, rmax, nrval)
 findbestlegendpos(\dots)
 findcbind(root, depth, maxdepth)
+\method{fitted}{exactppm}(object, \dots)
 flatfname(x)
 FormatFaspFormulae(f, argname)
 fvexprmap(x)
@@ -372,7 +374,7 @@ nncleanEngine(kthNND, k, d, \dots, tol, maxit,
 \method{pcf}{NAobject}(X, \dots)
 pcf3engine(x, y, z, box, rmax, nrval, correction, delta)
 pcfmulti.inhom(X, I, J, lambdaI, lambdaJ, \dots,
-               lambdaX, r, breaks, kernel,
+               lambdaX, r, breaks, rmax, kernel,
                bw, adjust.bw, stoyan, correction,
                sigma, adjust.sigma, varcov, update, leaveoneout, 
                Iname, Jname)

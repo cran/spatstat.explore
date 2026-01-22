@@ -2,7 +2,7 @@
 ##
 ##     markcorr.R
 ##
-##     $Revision: 1.94 $ $Date: 2025/11/19 02:29:59 $
+##     $Revision: 1.99 $ $Date: 2026/01/21 06:26:39 $
 ##
 ##    Estimate the mark correlation function
 ##    and related functions 
@@ -13,36 +13,50 @@ markvario <- local({
 
   halfsquarediff <- function(m1, m2) { ((m1-m2)^2)/2 }
 
-  assigntheo <- function(x, value) { x$theo <- value; return(x) }
-  
-  markvario <- 
-    function(X, correction=c("isotropic", "Ripley", "translate"),
-             r=NULL, method="density", ..., normalise=FALSE) {
-      if(is.NAobject(X)) return(NAobject("fv"))
-      m <- onecolumn(marks(X))
-      if(!is.numeric(m))
-        stop("Marks are not numeric")
-      if(missing(correction))
-        correction <- NULL
-      ## compute reference value Ef
-      weights <- pointweights(X, ..., parent=parent.frame())
-      Ef <- if(is.null(weights)) var(m) else weighted.var(m, weights)
-      ## Compute estimates
-      v <- markcorr(X, f=halfsquarediff, 
-                    r=r, correction=correction, method=method,
-                    normalise=normalise, ..., internal=list(Ef=Ef))
-      if(is.fv(v)) v <- anylist(v)
-      ## adjust theoretical value and fix labels
-      theoval <- if(normalise) 1 else var(m)
-      for(i in seq_len(length(v))) {
-        v[[i]]$theo <- theoval
-        v[[i]] <- rebadge.fv(v[[i]],
-                             quote(gamma(r)),
-                             "gamma")
-      }
-      if(length(v) == 1) v <- v[[1]]
-      return(v)
+  markvario <- function(X, correction=c("isotropic", "Ripley", "translate"),
+                        r=NULL, method="density", ..., 
+                        rmax=NULL, normalise=FALSE) {
+    if(is.NAobject(X)) return(NAobject("fv"))
+    if(missing(correction))
+      correction <- NULL
+    do.markvario(X, correction=correction, r=r, method=method,
+             normalise=normalise, ..., rmax=rmax)
+  }
+
+  do.markvario <- function(X, correction=c("isotropic", "Ripley", "translate"),
+                           r=NULL, method="density", ..., rmax=NULL,
+                           weights=NULL, fadjust=NULL,
+                           normalise=FALSE) {
+    m <- onecolumn(marks(X))
+    if(!is.numeric(m))
+      stop("Marks are not numeric", call.=FALSE)
+    ## compute reference value Ef
+    if(is.null(fadjust)) {
+      Ef <- var(m)
+    } else {
+      fadjust <- pointweights(X, weights=fadjust, parent=parent.frame(),
+                              weightsname="fadjust")
+      Ef <- weighted.var(m, fadjust)
     }
+    ## Compute estimates
+    v <- markcorr(X, f=halfsquarediff, 
+                  r=r, correction=correction, method=method,
+                  normalise=normalise, ..., rmax=rmax,
+                  weights=weights, fadjust=fadjust,
+                  internal=list(Ef=Ef))
+    if(is.fv(v)) v <- anylist(v)
+    ## adjust theoretical value and fix labels
+    theoval <- if(normalise) 1 else var(m)
+    for(i in seq_len(length(v))) {
+      vi <- v[[i]]
+      vi$theo <- theoval
+      v[[i]] <- rebadge.fv(vi,
+                           quote(gamma(r)),
+                           "gamma")
+    }
+    if(length(v) == 1) v <- v[[1]]
+    return(v)
+  }
 
   markvario
 })
@@ -53,24 +67,37 @@ markconnect <- local({
   
   markconnect <- function(X, i, j, r=NULL, 
                           correction=c("isotropic", "Ripley", "translate"),
-                          method="density", ...,
+                          method="density", ..., rmax=NULL, 
                           normalise=FALSE) {
     if(is.NAobject(X)) return(NAobject("fv"))
     stopifnot(is.ppp(X) && is.multitype(X))
-    if(missing(correction))
-      correction <- NULL
     marx <- marks(X)
     lev  <- levels(marx)
     if(missing(i)) i <- lev[1]
     if(missing(j)) j <- lev[2]
+    if(missing(correction))
+      correction <- NULL
+    do.markconnect(X=X, i=i, j=j, r=r, correction=correction,
+                   method=method, ..., rmax=rmax, normalise=normalise)
+  }
+    
+  do.markconnect <- function(X, i, j, r=NULL, 
+                             correction=c("isotropic", "Ripley", "translate"),
+                             method="density", ..., rmax=NULL, 
+                             weights=NULL, fadjust=NULL,
+                             normalise=FALSE) {
     ## compute reference value Ef
-    weights <- pointweights(X, ..., parent=parent.frame())
-    Ef <- if(is.null(weights)) mean(marx == i) * mean(marx == j) else 
-          mean(weights * (marx == i)) * mean(weights * (marx == j))
+    fadjust <- pointweights(X, weights=fadjust, parent=parent.frame(),
+                            weightsname="fadjust")
+    marx <- marks(X)
+    Ef <- if(is.null(fadjust)) mean(marx == i) * mean(marx == j) else 
+          mean(fadjust * (marx == i)) * mean(fadjust * (marx == j))
     ## compute estimates
     p <- markcorr(X, f=indicateij, r=r,
                   correction=correction, method=method,
                   ...,
+                  rmax=rmax,
+                  weights=weights, fadjust=fadjust,
                   fargs=list(i=i, j=j),
                   normalise=normalise,
                   internal=list(Ef=Ef))
@@ -93,12 +120,13 @@ markconnect <- local({
 
 markequal <- function(X, r=NULL, 
                       correction=c("isotropic", "Ripley", "translate"),
-                      method="density", ..., normalise=FALSE) {
+                      method="density", ..., rmax=NULL, normalise=FALSE) {
   if(is.NAobject(X)) return(NAobject("fv"))
   stopifnot(is.ppp(X))
   stopifnot(is.multitype(X))
   p <- markcorr(X, r=r,
-                correction=correction, method=method, ..., normalise=normalise)
+                correction=correction, method=method, ..., 
+	        rmax=rmax, normalise=normalise)
   e <- rebadge.fv(p, quote(e(r)), "e")
   return(e)
 }
@@ -109,7 +137,7 @@ Emark <- local({
 
   Emark <- function(X, r=NULL, 
                     correction=c("isotropic", "Ripley", "translate"),
-                    method="density", ..., normalise=FALSE) {
+                    method="density", ..., rmax=NULL, normalise=FALSE) {
     if(is.NAobject(X)) return(NAobject("fv"))
     stopifnot(is.ppp(X) && is.marked(X))
     marx <- marks(X)
@@ -121,7 +149,7 @@ Emark <- local({
       correction <- NULL
     E <- markcorr(X, f1, r=r,
                   correction=correction, method=method,
-                  ..., normalise=normalise)
+                  ..., rmax=rmax, normalise=normalise)
     if(isvec) {
       E <- rebadge.fv(E, quote(E(r)), "E")
     } else {
@@ -139,12 +167,12 @@ Vmark <- local({
 
   Vmark <- function(X, r=NULL, 
                     correction=c("isotropic", "Ripley", "translate"),
-                    method="density", ..., normalise=FALSE) {
+                    method="density", ..., rmax=NULL, normalise=FALSE) {
     if(is.NAobject(X)) return(NAobject("fv"))
     if(missing(correction))
       correction <- NULL
     E <- Emark(X, r=r, correction=correction, method=method, ...,
-             normalise=FALSE)
+             rmax=rmax, normalise=FALSE)
     E2 <- markcorr(X, f2, r=E$r,
                    correction=correction, method=method,
                    ..., normalise=FALSE)
@@ -183,6 +211,7 @@ markcorrint <-
 Kmark <-
   function(X, f=NULL, r=NULL, 
            correction=c("isotropic", "Ripley", "translate"), ...,
+           rmax=NULL,
            f1=NULL, normalise=TRUE, returnL=FALSE, fargs=NULL) {
   ## Computes the analogue of Kest(X)
   ## where each pair (x_i,x_j) is weighted by w(m_i,m_j)
@@ -243,14 +272,14 @@ Kmark <-
          mul={
            wt <- mX/lambda
            K <- Kinhom(UX, r=r, reciplambda=wt, correction=correction,
-                       ..., renormalise=FALSE)
+                       ..., rmax=rmax, renormalise=FALSE)
            Ef2 <- mean(mX)^2
          },
          equ={
            fXX <- outer(mX, mX, "==")
            wt <- fXX/lambda^2
            K <- Kinhom(UX, r=r, reciplambda2=wt, correction=correction,
-                       ..., renormalise=FALSE)
+                       ..., rmax=rmax, renormalise=FALSE)
            mtable <- table(mX)
            Ef2 <- sum(mtable^2)/length(mX)^2
          },
@@ -258,14 +287,14 @@ Kmark <-
            f1X <- do.call(f1, append(list(mX), fargs))
            wt <- f1X/lambda
            K <- Kinhom(UX, r=r, reciplambda=wt, correction=correction,
-                       ..., renormalise=FALSE)
+                       ..., rmax=rmax, renormalise=FALSE)
            Ef2 <- mean(f1X)^2
          },
          general={
            fXX <- do.call(outer, append(list(mX, mX, f), fargs))
            wt <- fXX/lambda^2
            K <- Kinhom(UX, r=r, reciplambda2=wt, correction=correction,
-                       ..., renormalise=FALSE)
+                       ..., rmax=rmax, renormalise=FALSE)
            Ef2 <- mean(fXX)
          })
   K$theo <- K$theo * Ef2
@@ -296,7 +325,9 @@ markcorr <-
   function(X, f = function(m1, m2) { m1 * m2}, r=NULL, 
            correction=c("isotropic", "Ripley", "translate"),
            method="density", ...,
-           weights=NULL, f1=NULL, normalise=TRUE, fargs=NULL,
+           rmax=NULL, 
+           weights=NULL, 
+           f1=NULL, normalise=TRUE, fargs=NULL, fadjust=NULL,
            internal=NULL)
 {
   ## mark correlation function with test function f
@@ -308,6 +339,10 @@ markcorr <-
   if(missing(f)) f <- NULL
   if(missing(correction)) correction <- NULL
 
+  if(!is.null(weights))
+    warn.once("markcorr.weights",
+         "The interpretation of argument 'weights' has changed in markcorr().")
+  
   ## handle data frame of marks
   marx <- marks(X, dfok=TRUE)
   if(is.data.frame(marx)) {
@@ -316,8 +351,8 @@ markcorr <-
     for(j in 1:nc) {
       Xj <- X %mark% marx[,j]
       result[[j]] <- markcorr(Xj, f=f, r=r, correction=correction,
-                              method=method, ...,
-                              weights=weights,
+                              method=method, ..., rmax=rmax,
+                              weights=weights, fadjust=fadjust,
                               f1=f1, normalise=normalise, fargs=fargs)
     }
     result <- as.anylist(result)
@@ -325,14 +360,17 @@ markcorr <-
     return(result)
   }
   
-  ## weights
-  if(unweighted <- is.null(weights)) {
-    weights <- rep(1, nX)
-  } else {
+  ## weights on data points
+  if(!is.null(weights)) {
     weights <- pointweights(X, weights=weights, parent=parent.frame())
-    stopifnot(all(weights > 0))
+    stopifnot(all(weights >= 0))
   }
-  
+  ## weights introduced into test function f
+  if(!is.null(fadjust)) {
+    fadjust <- pointweights(X, weights=fadjust, parent=parent.frame(),
+                             weightsname="fadjust")
+    stopifnot(all(fadjust >= 0))
+  }
   ## validate test function
   h <- check.testfun(f, f1, X)
   f     <- h$f
@@ -344,7 +382,7 @@ markcorr <-
   W <- X$window
   
   ## determine r values 
-  rmaxdefault <- rmax.rule("K", W, npts/area(W))
+  rmaxdefault <- rmax %orifnull% rmax.rule("K", W, npts/area(W))
   breaks <- handle.r.b.args(r, NULL, W, rmaxdefault=rmaxdefault)
   r <- breaks$r
   rmax <- breaks$max
@@ -380,20 +418,24 @@ markcorr <-
     ## Apply f to every possible pair of marks, and average
     Ef <- switch(ftype,
                  mul = {
-                   mean(marx * weights)^2
+                   if(is.null(fadjust)) {
+                     mean(marx)^2
+                   } else {
+                     mean(marx * fadjust)^2
+                   }
                  },
                  equ = {
-                   if(unweighted) {
+                   if(is.null(fadjust)) {
                      mtable <- table(marx)
                    } else {
-                     mtable <- tapply(weights, marx, sum)
+                     mtable <- tapply(fadjust, marx, sum)
                      mtable[is.na(mtable)] <- 0
                    }
                    sum(mtable^2)/nX^2
                  },
                  product={
                    f1m <- do.call(f1, append(list(marx), fargs))
-                   mean(f1m * weights)^2
+                   if(is.null(fadjust)) mean(f1m)^2 else mean(f1m * fadjust)^2
                  },
                  general = {
                    mcross <- if(is.null(fargs)) {
@@ -401,10 +443,10 @@ markcorr <-
                              } else {
                                do.call(outer, append(list(marx,marx,f),fargs))
                              }
-                   if(unweighted) {
+                   if(is.null(fadjust)) {
                      mean(mcross)
                    } else {
-                     wcross <- outer(weights, weights, "*")
+                     wcross <- outer(fadjust, fadjust, "*")
                      mean(mcross * wcross)
                    }
                  },
@@ -507,14 +549,18 @@ markcorr <-
            general=stop("negative values of function f are not permitted when normalise=TRUE"))
 
   ## weights
-  if(!unweighted)
-    ff <- ff * weights[I] * weights[J]
+  if(!is.null(fadjust))
+    ff <- ff * fadjust[I] * fadjust[J]
+  if(!is.null(weights))
+    ww <- weights[I] * weights[J]
   
   #### Compute estimates ##############
 
   if(any(correction == "none")) {
     ## uncorrected estimate
     edgewt <- rep.int(1, length(dIJ))
+    if(!is.null(weights))
+      edgewt <- edgewt * ww
     ## get smoothed estimate of mark covariance
     Mnone <- sewsmod(dIJ, ff, edgewt, Efdenom, r, method, ...)
     smooth.args <- attr(Mnone, "smooth.args")
@@ -528,6 +574,8 @@ markcorr <-
     ## translation correction
     XJ <- ppp(close$xj, close$yj, window=W, check=FALSE)
     edgewt <- edge.Trans(XI, XJ, paired=TRUE)
+    if(!is.null(weights))
+      edgewt <- edgewt * ww
     ## get smoothed estimate of mark covariance
     Mtrans <- sewsmod(dIJ, ff, edgewt, Efdenom, r, method, ...)
     smooth.args <- attr(Mtrans, "smooth.args")
@@ -540,6 +588,8 @@ markcorr <-
   if(any(correction == "isotropic")) {
     ## Ripley isotropic correction
     edgewt <- edge.Ripley(XI, matrix(dIJ, ncol=1))
+    if(!is.null(weights))
+      edgewt <- edgewt * ww
     ## get smoothed estimate of mark covariance
     Miso <- sewsmod(dIJ, ff, edgewt, Efdenom, r, method, ...)
     smooth.args <- attr(Miso, "smooth.args")
@@ -568,7 +618,8 @@ markcorr <-
 markcrosscorr <-
   function(X, r=NULL, 
            correction=c("isotropic", "Ripley", "translate"),
-           method="density", ..., normalise=TRUE, Xname=NULL)
+           method="density", ..., rmax=NULL,
+           weights=NULL, normalise=TRUE, Xname=NULL)
 {
   if(is.NAobject(X)) return(NAobject("fv"))
   if(missing(Xname))
@@ -577,6 +628,9 @@ markcrosscorr <-
   stopifnot(is.ppp(X) && is.marked(X))
   npts <- npoints(X)
   W <- Window(X)
+
+  if(!is.null(weights))
+    weights <- pointweights(X, weights=weights, parent=parent.frame())
 
   ## available selection of edge corrections depends on window
   correction.given <- !missing(correction) && !is.null(correction)
@@ -595,7 +649,7 @@ markcrosscorr <-
   correction <- implemented.for.K(correction, W$type, correction.given)
   
   ## determine r values 
-  rmaxdefault <- rmax.rule("K", W, npts/area(W))
+  rmaxdefault <- rmax %orifnull% rmax.rule("K", W, npts/area(W))
   breaks <- handle.r.b.args(r, NULL, W, rmaxdefault=rmaxdefault)
   r <- breaks$r
   rmax <- breaks$max
@@ -689,10 +743,14 @@ markcrosscorr <-
         stop("negative marks are not permitted when normalise=TRUE")
     
       ## Compute estimates ##############
+      if(!is.null(weights))
+        ww <- weights[I] * weights[J]
       
       if(any(correction == "none")) {
         ## uncorrected estimate
         edgewt <- rep.int(1, length(dIJ))
+        if(!is.null(weights))
+          edgewt <- edgewt * ww
         ## get smoothed estimate of mark covariance
         Mnone <- sewsmod(dIJ, ff, edgewt, Efdenom, r, method, ...)
         smooth.args <- attr(Mnone, "smooth.args")
@@ -706,6 +764,8 @@ markcrosscorr <-
         ## translation correction
         XJ <- ppp(close$xj, close$yj, window=W, check=FALSE)
         edgewt <- edge.Trans(XI, XJ, paired=TRUE)
+        if(!is.null(weights))
+          edgewt <- edgewt * ww
         ## get smoothed estimate of mark covariance
         Mtrans <- sewsmod(dIJ, ff, edgewt, Efdenom, r, method, ...)
         smooth.args <- attr(Mtrans, "smooth.args")
@@ -718,6 +778,8 @@ markcrosscorr <-
       if(any(correction == "isotropic")) {
         ## Ripley isotropic correction
         edgewt <- edge.Ripley(XI, matrix(dIJ, ncol=1))
+        if(!is.null(weights))
+          edgewt <- edgewt * ww
         ## get smoothed estimate of mark covariance
         Miso <- sewsmod(dIJ, ff, edgewt, Efdenom, r, method, ...)
         smooth.args <- attr(Miso, "smooth.args")

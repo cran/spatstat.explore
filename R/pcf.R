@@ -3,7 +3,7 @@
 #'
 #' Calculate pair correlation function from point pattern (pcf.ppp)
 #' 
-#' $Revision: 1.78 $ $Date: 2025/09/03 03:40:13 $
+#' $Revision: 1.79 $ $Date: 2026/01/21 06:26:39 $
 #'
 #' Copyright (c) 2008-2025 Adrian Baddeley, Tilman Davies and Martin Hazelton
 
@@ -14,7 +14,7 @@ pcf <- function(X, ...) {
 
 pcf.NAobject <- function(X, ...) { return(NAobject("fv")) }
 
-pcf.ppp <- function(X, ..., r=NULL,
+pcf.ppp <- function(X, ..., r=NULL, rmax=NULL,
                    adaptive=FALSE,
                    kernel="epanechnikov", bw=NULL, h=NULL,
                    bw.args=list(),
@@ -51,7 +51,7 @@ pcf.ppp <- function(X, ..., r=NULL,
   samplesize <- npairs <- npts * (npts - 1)
   lambda <- npts/areaW
   lambda2area <- npairs/areaW
-  rmaxdefault <- rmax.rule("K", win, lambda)        
+  rmaxdefault <- rmax %orifnull% rmax.rule("K", win, lambda)        
 
   ## ....... handle argument 'domain' .......................
   if(!is.null(domain)) {
