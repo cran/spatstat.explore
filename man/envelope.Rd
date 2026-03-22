@@ -12,7 +12,8 @@
   funargs=list(), funYargs=funargs,
   simulate=NULL,  fix.n=FALSE, fix.marks=FALSE,
   verbose=TRUE, clipdata=TRUE,
-  transform=NULL, global=FALSE, ginterval=NULL, use.theory=NULL, 
+  transform=NULL, global=FALSE, ginterval=NULL,
+  use.theory=NULL, theoryfun=NULL, 
   alternative=c("two.sided", "less", "greater"),
   scale=NULL, clamp=FALSE, 
   savefuns=FALSE, savepatterns=FALSE,
@@ -26,7 +27,8 @@
     Object containing point pattern data.
     A point pattern (object of class
     \code{"ppp"}) or a fitted point process model
-    (object of class \code{"ppm"}, \code{"kppm"} or \code{"slrm"}).
+    (object of class \code{"ppm"}, \code{"kppm"}, \code{"dppm"}
+    or \code{"slrm"}).
   }
   \item{fun}{
     Function that computes the desired summary statistic
@@ -64,7 +66,12 @@
     in this list will be treated as the simulated patterns from which
     the envelopes are computed.
     Alternatively \code{simulate} may be an object produced by the
-    \code{envelope} command: see Details.
+    \code{envelope} command, from which simulated patterns will be
+    extracted: see Details.
+    If \code{simulate} is a point process model (of class
+    \code{"ppm"}, \code{"kppm"}, \code{"dppm"}, \code{"slrm"},
+    \code{"clusterprocess"} or \code{"detpointprocfamily"})
+    then this process will be simulated \code{nsim} times.
   }
   \item{fix.n}{
     Logical. If \code{TRUE}, simulated patterns will have the
@@ -108,10 +115,16 @@
   \item{use.theory}{
     Logical value indicating whether to use the theoretical value,
     computed by \code{fun}, as the reference value for simultaneous
-    envelopes. Applicable only when \code{global=TRUE}.
-    Default is \code{use.theory=TRUE} if \code{Y} is a point pattern,
-    or a point process model equivalent to Complete Spatial Randomness,
+    envelopes when \code{global=TRUE}.
+    Default is \code{use.theory=TRUE} if \code{theoryfun} is provided,
+    or if \code{Y} is a point pattern,
+    or if \code{Y} is a point process model
+    equivalent to Complete Spatial Randomness,
     and \code{use.theory=FALSE} otherwise.
+  }
+  \item{theoryfun}{
+    Optional. A \code{function(r)} in the \R language which calculates the
+    theoretical or reference value of the summary function \code{fun}.
   }
   \item{alternative}{
     Character string determining whether the envelope corresponds
@@ -221,7 +234,9 @@
   \item{theo}{
     theoretical value of the summary function under CSR
     (Complete Spatial Randomness, a uniform Poisson point process)
-    if the simulations were generated according to CSR
+    if the simulations were generated according to CSR,
+    or theoretical value of the summary function provided by
+    \code{theoryfun}
   }
   \item{mmean}{
     estimated theoretical value of the summary function,
@@ -342,14 +357,25 @@
       \code{alpha = 2 * nrank/(1 + nsim)}.
     }
     \item{simultaneous:}{if \code{global=TRUE}, then the envelopes are
-      determined as follows. First we calculate the theoretical mean value of
-      the summary statistic (if we are testing CSR, the theoretical
-      value is supplied by \code{fun}; otherwise we perform a separate
-      set of \code{nsim2} simulations, compute the
-      average of all these simulated values, and take this average
-      as an estimate of the theoretical mean value). Then, for each simulation,
-      we compare the simulated curve to the theoretical curve, and compute the
-      maximum absolute difference between them (over the interval
+      determined as follows. First we calculate the
+      reference value of the summary statistic:
+      \itemize{
+	\item if \code{theoryfun} is provided, then this function
+	is used to calculate the theoretical value of the summary
+	function;
+	\item otherwise if we are testing CSR,
+	the theoretical value of the summary function
+	is taken from the result of \code{fun} (which should contain a
+	column named \code{"theo"});
+	\item otherwise we perform a separate
+	set of \code{nsim2} simulations, compute the
+	average of all these simulated values, and take this average
+	as an estimate of the theoretical mean value.
+      }
+      Then, for each simulation,
+      we compare the simulated curve to the theoretical/reference curve,
+      and compute the maximum absolute difference between them
+      (over the interval
       of \eqn{r} values specified by \code{ginterval}). This gives a
       deviation value \eqn{d_i}{d[i]} for each of the \code{nsim}
       simulations. Finally we take the \code{m}-th largest of the

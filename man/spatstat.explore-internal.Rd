@@ -90,6 +90,10 @@
 \alias{localpcfengine}
 \alias{localpcfmatrix}
 \alias{lookup2DkernelInfo}
+\alias{make.simulrecipe}
+\alias{make.simulrecipe.ppp}
+\alias{make.simulrecipe.pp3}
+\alias{make.simulrecipe.clusterprocess}
 \alias{makefvlabel}
 \alias{makeRocDesc}
 \alias{makeRocFlabel}
@@ -107,7 +111,6 @@
 \alias{pairs.solist}
 \alias{pcf.NAobject}
 \alias{pcf3engine}
-\alias{pcfmulti.inhom}
 \alias{plot.bw.frac}
 \alias{plot.bw.optim}
 \alias{plot.localpcfmatrix}
@@ -154,6 +157,7 @@
 \alias{resolve.lambda.ppp}
 \alias{resolve.lambdacross}
 \alias{resolve.lambdacross.ppp}
+\alias{resolve.pcf.bandwidth}
 \alias{resolve.reciplambda}
 \alias{resolve.reciplambda.ppp}
 \alias{resolveEinfo}
@@ -282,6 +286,7 @@ envelopeEngine(X, fun, simul,
            nsim, nrank, \dots, funargs, funYargs,
            verbose, clipdata, 
            transform, global, ginterval, use.theory,
+           theoryfun, theory.adjective,
            alternative, scale, clamp,
            savefuns, savepatterns, saveresultof,
            weights,
@@ -304,7 +309,7 @@ envelopeTest(X, \dots, exponent, alternative,
 \method{envelope}{matrix}(Y, \dots, argvals, rvals,
   observed, theory, funX, nsim, nsim2, jsim, jsim.mean,
   type, alternative, scale, clamp, csr, use.theory, nrank, ginterval, nSD,
-  savefuns, check, Yname, argname, arg.desc,
+  savefuns, check, Yname, argname, arg.desc, theory.adjective, 
   fname.orig, transform,
   do.pwrong, weights, precomputed, gaveup)
 evaluateCovariate(covariate, locations, \dots)
@@ -350,10 +355,14 @@ localKmultiEngine(X, from, to,
            lambdaFrom, lambdaTo, \dots, rmax, wantL,
            correction, verbose, rvalue, sigma, varcov,
            lambdaX, update, leaveoneout,
-           Iexplain, Jexplain, Ikey, Jkey)
+           Iexplain, Jexplain, Ikey, Jkey, Ilevels, Jlevels)
 localpcfengine(X, \dots, delta, rmax, nr, stoyan, lambda, rvalue)
 localpcfmatrix(X, i, \dots, lambda, delta, rmax, nr, stoyan)
 lookup2DkernelInfo(kernel)
+make.simulrecipe(object, envir, \dots)
+\method{make.simulrecipe}{ppp}(object, envir, \dots, fix.n, fix.marks)
+\method{make.simulrecipe}{pp3}(object, envir, \dots, fix.n, fix.marks)
+\method{make.simulrecipe}{clusterprocess}(object, envir, \dots, W)
 makefvlabel(op, accent, fname, sub, argname, pre, post)
 makeRocDesc(desc, leftoneout)
 makeRocFlabel(sub, leftoneout, super, f, argu)
@@ -373,11 +382,6 @@ nncleanEngine(kthNND, k, d, \dots, tol, maxit,
 \method{pairs}{solist}(\dots, plot=TRUE)
 \method{pcf}{NAobject}(X, \dots)
 pcf3engine(x, y, z, box, rmax, nrval, correction, delta)
-pcfmulti.inhom(X, I, J, lambdaI, lambdaJ, \dots,
-               lambdaX, r, breaks, rmax, kernel,
-               bw, adjust.bw, stoyan, correction,
-               sigma, adjust.sigma, varcov, update, leaveoneout, 
-               Iname, Jname)
 \method{plot}{bw.frac}(x, \dots)
 \method{plot}{bw.optim}(x, \dots, showopt, optargs)
 \method{plot}{localpcfmatrix}(x, \dots)
@@ -429,7 +433,10 @@ resolve.lambda(X, lambda, \dots)
 resolve.lambdacross(X, I, J, lambdaI, lambdaJ, \dots)
 \method{resolve.lambdacross}{ppp}(X, I, J, lambdaI, lambdaJ, \dots,
          lambdaX, sigma, varcov, leaveoneout, update, lambdaIJ,
-         Iexplain, Jexplain)
+         Iexplain, Jexplain, Ilevels, Jlevels)
+resolve.pcf.bandwidth(X, \dots, lambda, rmax, nr, adaptive, kernel,
+  bw, h, bw.args, stoyan, adjust, correction, divisor, zerocor, nsmall,
+  gref, close)
 resolve.reciplambda(X, lambda, reciplambda, \dots)
 \method{resolve.reciplambda}{ppp}(X, lambda, reciplambda, \dots,
                     sigma, varcov, leaveoneout, update, check)
@@ -484,7 +491,8 @@ sewsmod(d, ff, wt, Ef, rvals, method="smrep", \dots, nwtsteps=500)
 \method{shift}{quadrattest}(X, \dots)
 \method{shift}{tolcon}(X, \dots)
 \method{shift}{tolconlist}(X, \dots)
-simulrecipe(type, expr, envir, csr, pois, constraints)
+simulrecipe(type, expr, envir, csr, pois, constraints,
+            value, making, realisations)
 \method{StieltjesCalc}{fv}(M, f, \dots)
 \method{Smooth}{solist}(X, \dots)
 smoothcrossEngine(Xdata, Xquery, values, sigma, \dots,

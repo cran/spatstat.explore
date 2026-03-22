@@ -1,4 +1,120 @@
 
+        CHANGES IN spatstat.explore VERSION 3.8-0
+
+OVERVIEW
+
+    o We thank Andrew Bevan, Meri Bilan, Tilman Davies,
+    Andrea Gilardi and Martin Hazelton for contributions.
+    
+    o Important changes to default settings for pair correlation functions.
+
+    o More flexible interpretation of arguments 'lambda = <ppm>" 
+    in inhomogeneous summary statistics
+
+    o New options for multitype pair correlation functions.
+
+    o More options for 'simulate' argument in 'envelope' methods.
+
+    o Specify the 'theoretical' value of the summary function in 'envelope'
+
+    o Extended capability of 'envelope.pp3' 
+
+    o Method of T.F. Cox for identifying dense and sparse regions of points.
+
+    o Minor improvements and bug fixes.
+
+NEW FUNCTIONS
+
+    o coxmap
+    Given a point pattern, divide the spatial region into
+    areas where the pattern is dense, sparse or neither,
+    using the method of T.F. Cox (1979).
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o pcf.ppp, pcfinhom
+    The default value of 'divisor' has changed to "a",
+    so that the new area-based estimator is the default.
+
+    o pcf.ppp, pcfinhom
+    The default value of 'zerocor' is now 'JonesFoster' for small patterns
+    and 'convolution' for larger patterns.
+
+    o pcf.ppp, pcfinhom
+    New argument 'nsmall' determines the threshold for large patterns.
+
+    o pcfinhom
+    Default value of 'normpower' has changed to 2.
+
+    o pcfcross, pcfdot, pcfmulti
+    The default estimation method has changed. The new default is
+    based on squared distances (divisor="a").
+
+    o pcfcross.inhom, pcfdot.inhom, pcfmulti.inhom
+    The default estimation method has changed. The new default is
+    based on squared distances (divisor="a").
+
+    o pcfmulti, pcfmulti.inhom
+    New arguments h, bw.args, adjust, zerocor, nsmall, gref, tau, close.
+    
+    o pcfcross.inhom, pcfdot.inhom, pcfmulti.inhom, 
+    Interpretation of arguments 'lambdaI', 'lambdaJ', 'lambdaX', 'lambdadot'
+    has changed when they are fitted point process models. If the model is
+    a multitype point process then it is assumed to be a model for the 
+    entire point pattern X, while if the model is an unmarked point process
+    then it is assumed to be a model for the relevant subset of the data.
+
+    o Kcross.inhom, Kdot.inhom, Kmulti.inhom
+    Interpretation of arguments 'lambdaI', 'lambdaJ', 'lambdaX', 'lambdadot'
+    has changed when they are fitted point process models. If the model is
+    a multitype point process then it is assumed to be a model for the 
+    entire point pattern X, while if the model is an unmarked point process
+    then it is assumed to be a model for the relevant subset of the data.
+
+    o pcfcross, pcfdot
+    Shortened list of formal arguments (other arguments pass to 'pcfmulti')
+    
+    o pcfcross.inhom, pcfdot.inhom
+    Shortened list of formal arguments 
+    (other arguments are passed to 'pcfmulti.inhom')
+    
+    o density.ppp
+    Argument 'weights' can be logical valued.
+
+    o intensity.ppp
+    Argument 'weights' can be logical valued.
+
+    o markcorr, markcrosscorr
+    Argument 'weights' can be logical valued.
+
+    o relrisk.ppp
+    Argument 'weights' can be logical valued.
+
+    o envelope.ppp
+    Argument 'simulate' can be a point process model of class
+    'ppm', 'kppm', 'dppm', 'slrm', 'clusterprocess' or 'detpointprocfamily'.
+
+    o envelope.pp3
+    Marked point patterns are now accepted.
+
+    o envelope.pp3
+    New arguments 'fix.n' and 'fix.marks' determine whether the 
+    simulated patterns have a fixed or random number of points.
+
+    o envelope.ppp, envelope.pp3
+    New argument 'theoryfun' can be used to provide the theoretical value
+    of the summary function.
+
+    o hopskel, hopskel.test
+    Accelerated.
+
+BUG FIXES
+
+    o quadrat.test
+    Crashed when argument 'lambda' was an image or function on a linear network.
+    [Spotted by Andrea Gilardi.]
+    Fixed.
+
         CHANGES IN spatstat.explore VERSION 3.7-0
 
 OVERVIEW
@@ -20,12 +136,6 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o markcrosscorr
     New argument 'weights'.
 
-    o Gcom, Kcom, psstA, psstG, psst
-    These diagnostic functions have a new formal argument 'rmax'.
-
-    o Gres, Kres
-    These diagnostic functions accept argument 'rmax'.
-    
     o plot.fasp
     Now returns a list containing the results of plot.fv for each panel.
 

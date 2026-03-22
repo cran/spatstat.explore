@@ -1,6 +1,6 @@
 Package: spatstat.explore
-Version: 3.7-0
-Date: 2026-01-22
+Version: 3.8-0
+Date: 2026-03-22
 Title: Exploratory Data Analysis for the 'spatstat' Family
 Authors@R: c(person("Adrian", "Baddeley", 
                     role = c("aut", "cre", "cph"),
@@ -66,12 +66,12 @@ Authors@R: c(person("Adrian", "Baddeley",
 	            role="ctb"))
 Maintainer: Adrian Baddeley <Adrian.Baddeley@curtin.edu.au>
 Depends: R (>= 3.5.0), spatstat.data (>= 3.1-9), spatstat.univar (>=
-        3.1-6), spatstat.geom (>= 3.7-0), spatstat.random (>= 3.4-3),
+        3.1-7), spatstat.geom (>= 3.7-2), spatstat.random (>= 3.4-5),
         stats, graphics, grDevices, utils, methods, nlme
-Imports: spatstat.utils (>= 3.2-1), spatstat.sparse (>= 3.1), goftest
+Imports: spatstat.utils (>= 3.2-2), spatstat.sparse (>= 3.1), goftest
         (>= 1.2-2), Matrix, abind
 Suggests: sm, gsl, locfit, spatial, fftwtools (>= 0.9-8),
-        spatstat.linnet (>= 3.4), spatstat.model (>= 3.5), spatstat (>=
+        spatstat.linnet (>= 3.4), spatstat.model (>= 3.6), spatstat (>=
         3.5)
 Description: Functionality for exploratory data analysis and nonparametric analysis of
 	     spatial data, mainly spatial point patterns,
@@ -84,7 +84,7 @@ URL: http://spatstat.org/
 NeedsCompilation: yes
 ByteCompile: true
 BugReports: https://github.com/spatstat/spatstat.explore/issues
-Packaged: 2026-01-21 23:34:30 UTC; adrian
+Packaged: 2026-03-22 10:00:55 UTC; adrian
 Author: Adrian Baddeley [aut, cre, cph] (ORCID:
     <https://orcid.org/0000-0001-9499-8382>),
   Rolf Turner [aut, cph] (ORCID: <https://orcid.org/0000-0001-5521-5218>),
@@ -115,4 +115,4 @@ Author: Adrian Baddeley [aut, cre, cph] (ORCID:
   Hangsheng Wang [ctb],
   Tingting Zhan [ctb]
 Repository: CRAN
-Date/Publication: 2026-01-22 06:10:02 UTC
+Date/Publication: 2026-03-22 11:00:02 UTC
