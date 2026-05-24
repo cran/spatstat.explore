@@ -1,15 +1,10 @@
-#
-#  density.ppp.R
-#
-#  Method for 'density' for point patterns
-#
-#  $Revision: 1.137 $    $Date: 2025/04/30 12:53:56 $
-#
-
-# ksmooth.ppp <- function(x, sigma, ..., edge=TRUE) {
-#  .Deprecated("density.ppp", package="spatstat")
-#  density.ppp(x, sigma, ..., edge=edge)
-# }
+#'
+#'  density.ppp.R
+#'
+#'  Method for 'density' for point patterns
+#'
+#'  $Revision: 1.139 $    $Date: 2026/05/18 05:18:22 $
+#'
 
 density.ppp <- local({
   
@@ -185,8 +180,10 @@ density.ppp <- function(x, sigma=NULL, ...,
     smo <- raw
   }
 
-  result <- if(is.im(smo)) smo[x$window, drop=FALSE]
-            else solapply(smo, "[", i=x$window, drop=FALSE)
+  #' clip to appropriate window
+  rule.pix <- list(...)$rule.pix
+  result <- if(is.im(smo)) smo[x$window, drop=FALSE, rule.pix=rule.pix]
+            else solapply(smo, "[", i=x$window, drop=FALSE, rule.pix=rule.pix)
 
   # internal use only
   spill <- resolve.1.default(list(spill=FALSE), list(...))

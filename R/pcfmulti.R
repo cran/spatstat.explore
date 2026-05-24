@@ -1,12 +1,13 @@
 #
 #   pcfmulti.R
 #
-#   $Revision: 1.17 $   $Date: 2026/02/14 09:04:30 $
+#   $Revision: 1.22 $   $Date: 2026/05/22 02:08:57 $
 #
 #   multitype pair correlation functions
 #
 
-pcfcross <- function(X, i, j, ...) {
+pcfcross <- function(X, i, j, ...,
+                     correction=NULL, divisor=NULL, zerocor=NULL) {
   verifyclass(X, "ppp")
   if(is.NAobject(X)) return(NAobject("fv"))
   stopifnot(is.multitype(X))
@@ -21,6 +22,7 @@ pcfcross <- function(X, i, j, ...) {
   Jname <- paste("points with mark j =", j)
   ##
   result <- pcfmulti(X, I, J, ...,
+                     correction=correction, divisor=divisor, zerocor=zerocor,
                      Iname=Iname, Jname=Jname,
                      IJexclusive=(i != j))
   ##
@@ -37,7 +39,8 @@ pcfcross <- function(X, i, j, ...) {
 }
 
 pcfdot <- 
-function(X, i, ...) {
+function(X, i, ...,
+         correction=NULL, divisor=NULL, zerocor=NULL) {
   verifyclass(X, "ppp")
   if(is.NAobject(X)) return(NAobject("fv"))
   stopifnot(is.multitype(X))
@@ -51,6 +54,7 @@ function(X, i, ...) {
   Jname <- "points"
 	
   result <- pcfmulti(X, I, J, ...,
+                     correction=correction, divisor=divisor, zerocor=zerocor,
                      Iname=Iname, Jname=Jname,
                      IJexclusive=FALSE)
 
@@ -71,7 +75,7 @@ pcfmulti <- function(X, I, J, ...,
                      kernel="epanechnikov", bw=NULL, h=NULL,
                      bw.args=list(), stoyan=0.15, adjust=1,
                      correction=c("translate", "Ripley"),
-                     divisor=c("a", "r", "d", "t"),
+                     divisor=c("r", "d", "a", "t"),
                      zerocor=c("convolution", "reflection", "bdrykern",
                                "JonesFoster", "weighted", "none",
                                "good", "best"),
@@ -82,7 +86,8 @@ pcfmulti <- function(X, I, J, ...,
                      Jname="points satisfying condition J",
                      IJexclusive=FALSE,
                      ratio=FALSE,
-                     close=NULL)
+                     close=NULL,
+                     convert.bw=TRUE)
 {
   verifyclass(X, "ppp")
   if(is.NAobject(X)) return(NAobject("fv"))
@@ -98,13 +103,13 @@ pcfmulti <- function(X, I, J, ...,
   if(!divisor.given || !zerocor.given) 
     warn.once("pcfmultiDefaults",
               paste("Default settings for pcfmulti, pcfdot, pcfcross",
-                    "have changed in spatstat.explore 3.7-0.007"))
+                    "have changed in spatstat.explore 3.8-0"))
 
   if(divisor.given) {
     if(is.function(divisor)) divisor <- divisor(X)
     divisor <- match.arg(divisor)
   } else {
-    divisor <- "a"
+    divisor <- "r"
   }
 
   if(zerocor.given) {
@@ -171,7 +176,8 @@ pcfmulti <- function(X, I, J, ...,
   ## .... determine smoothing arguments ......................
 
   M <- resolve.pcf.bandwidth(X,
-                             lambda=lambdaJ, 
+                             lambda=lambdaJ,
+                             npts=nJ,
                              rmax=rmax, nr=length(r),
                              adaptive=adaptive, kernel=kernel,
                              bw=bw, h=h, bw.args=bw.args,
@@ -181,14 +187,18 @@ pcfmulti <- function(X, I, J, ...,
                              zerocor=zerocor,
                              nsmall=nsmall,
                              gref=gref,
-                             close=close)
+                             close=close,
+                             convert.bw=convert.bw)
 
   info    <- M$info
   denargs <- M$denargs
 
-  Transform <- info$Transform
   dmax      <- info$dmax
   gref      <- info$gref
+  Transform <- info$Transform
+  InvTran   <- info$InvTran
+  BWmap     <- info$BWmap 
+  InvBWmap  <- info$InvBWmap
   
   ## .......................................................
   ##  initialise fv object
@@ -298,7 +308,9 @@ pcfmulti <- function(X, I, J, ...,
   if(any(correction=="isotropic")) {
     ## Ripley isotropic correction
     if(npairs > 0) {
-      edgewt <- edge.Ripley(XI[icloseI], matrix(dclose, ncol=1))
+      bXI <- bdist.points(XI)
+      edgewt <- edge.Ripley(XI[icloseI], matrix(dclose, ncol=1),
+                            bdistX=bXI[icloseI])
       kdenR <- sewpcf(d=dclose,
                       w=edgewt,
                       denargs=denargs,
@@ -338,6 +350,24 @@ pcfmulti <- function(X, I, J, ...,
 
   # 
   unitname(out) <- unitname(X)
+
+  ## save information about computation
+  attr(out, "bw.used") <- bw.used
+  bw.distance <- InvBWmap(bw.used, denargs$from, denargs$to)
+  attr(out, "bw.distance") <- bw.distance
+  info <- append(info,
+                 list(bw.used=bw.used,
+                      bw.distance=bw.distance))
+  if(adaptive) {
+    attr(out, "bwvalues.used") <- bwvalues.used
+    bwvalues.distance <- InvBWmap(bwvalues.used, denargs$from, denargs$to)
+    attr(out, "bwvalues.distance") <- bwvalues.distance
+    info <- append(info,
+                   list(bwvalues.used=bwvalues.used,
+                        bwvalues.distance=bwvalues.distance))
+  }
+  attr(out, "info") <- info
+  
   return(out)
 }
 

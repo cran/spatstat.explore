@@ -1,13 +1,14 @@
 #
 #   pcfmulti.inhom.R
 #
-#   $Revision: 1.27 $   $Date: 2026/02/15 04:31:44 $
+#   $Revision: 1.32 $   $Date: 2026/05/22 02:09:30 $
 #
 #   inhomogeneous multitype pair correlation functions
 #
 #
 
-pcfcross.inhom <- function(X, i, j, lambdaI=NULL, lambdaJ=NULL, ...) {
+pcfcross.inhom <- function(X, i, j, lambdaI=NULL, lambdaJ=NULL, ...,
+                           correction=NULL, divisor=NULL, zerocor=NULL) {
   verifyclass(X, "ppp")
   if(is.NAobject(X)) return(NAobject("fv"))
   stopifnot(is.multitype(X))
@@ -23,6 +24,7 @@ pcfcross.inhom <- function(X, i, j, lambdaI=NULL, lambdaJ=NULL, ...) {
   g <- pcfmulti.inhom(X=X, I=I, J=J,
                       lambdaI=lambdaI, lambdaJ=lambdaJ,
                       ...,
+                      correction=correction, divisor=divisor, zerocor=zerocor,
                       Iname=Iname, Jname=Jname,
                       IJexclusive = (i != j),
                       Ilevels=i, Jlevels=j)
@@ -39,7 +41,8 @@ pcfcross.inhom <- function(X, i, j, lambdaI=NULL, lambdaJ=NULL, ...) {
   return(result)
 }
 
-pcfdot.inhom <- function(X, i, lambdaI=NULL, lambdadot=NULL, ...) {
+pcfdot.inhom <- function(X, i, lambdaI=NULL, lambdadot=NULL, ...,
+                         correction=NULL, divisor=NULL, zerocor=NULL) {
   verifyclass(X, "ppp")
   if(is.NAobject(X)) return(NAobject("fv"))
   stopifnot(is.multitype(X))
@@ -56,6 +59,7 @@ pcfdot.inhom <- function(X, i, lambdaI=NULL, lambdadot=NULL, ...) {
                       lambdaI=lambdaI,
                       lambdaJ=lambdadot,
                       ...,
+                      correction=correction, divisor=divisor, zerocor=zerocor,
                       Iname=Iname, Jname=Jname,
                       IJexclusive=FALSE,
                       ilevels=i, jlevels=levels(marx))
@@ -81,9 +85,9 @@ pcfmulti.inhom <- function(X, I, J, lambdaI=NULL, lambdaJ=NULL, ...,
                            adaptive=FALSE, 
                            kernel="epanechnikov",
                            bw=NULL, h=NULL, bw.args=list(),
-                           stoyan=0.15, adjust.bw=1,
+                           stoyan=0.15, adjust.bw=adjust, adjust=1,
                            correction=c("translate", "Ripley"),
-                           divisor=c("a", "r", "d", "t"),
+                           divisor=c("r", "d", "a", "t"),
                            zerocor=c("convolution", "reflection", "bdrykern",
                                      "JonesFoster", "weighted", "none",
                                      "good", "best"),
@@ -96,7 +100,8 @@ pcfmulti.inhom <- function(X, I, J, lambdaI=NULL, lambdaJ=NULL, ...,
                            Jname="points satisfying condition J",
                            IJexclusive=FALSE,
                            Ilevels=NULL, Jlevels=NULL,
-                           close=NULL) {
+                           close=NULL,
+                           convert.bw=TRUE) {
   verifyclass(X, "ppp")
   if(is.NAobject(X)) return(NAobject("fv"))
   
@@ -111,13 +116,13 @@ pcfmulti.inhom <- function(X, I, J, lambdaI=NULL, lambdaJ=NULL, ...,
   if(!divisor.given || !zerocor.given) 
     warn.once("pcfinhomDefaults",
               paste("Default settings for pcfinhom",
-                    "have changed in spatstat.explore 3.7-0.007"))
+                    "have changed in spatstat.explore 3.8-0"))
 
   if(divisor.given) {
     if(is.function(divisor)) divisor <- divisor(X)
     divisor <- match.arg(divisor)
   } else {
-    divisor <- "a"
+    divisor <- "r"
   }
 
   if(zerocor.given) {
@@ -197,7 +202,8 @@ pcfmulti.inhom <- function(X, I, J, lambdaI=NULL, lambdaJ=NULL, ...,
   ## .... determine smoothing argyments ......................
 
   M <- resolve.pcf.bandwidth(X,
-                             lambda=lambdaJbar, 
+                             lambda=lambdaJbar,
+                             npts=nJ,
                              rmax=rmax, nr=length(r),
                              adaptive=adaptive, kernel=kernel,
                              bw=bw, h=h, bw.args=bw.args,
@@ -207,15 +213,18 @@ pcfmulti.inhom <- function(X, I, J, lambdaI=NULL, lambdaJ=NULL, ...,
                              zerocor=zerocor,
                              nsmall=nsmall,
                              gref=gref,
-                             close=close)
+                             close=close,
+                             convert.bw=convert.bw)
 
   info    <- M$info
   denargs <- M$denargs
 
-  Transform <- info$Transform
   dmax      <- info$dmax
   gref      <- info$gref
-
+  Transform <- info$Transform
+  InvTran   <- info$InvTran
+  BWmap     <- info$BWmap 
+  InvBWmap  <- info$InvBWmap
   
   #################################################
   
@@ -303,7 +312,9 @@ pcfmulti.inhom <- function(X, I, J, lambdaI=NULL, lambdaJ=NULL, ...,
   if(any(correction=="isotropic")) {
     #' Ripley isotropic correction
     if(npairs > 0) {
-      edgewt <- edge.Ripley(XI[icloseI], matrix(dclose, ncol=1))
+      bXI <- bdist.points(XI)
+      edgewt <- edge.Ripley(XI[icloseI], matrix(dclose, ncol=1),
+                            bdistX=bXI[icloseI])
       kdenR <- sewpcf(dclose, edgewt * weight, denargs, areaW)
       gR <- kdenR$g
       bw.used <- attr(kdenR, "bw")
@@ -336,6 +347,24 @@ pcfmulti.inhom <- function(X, I, J, lambdaI=NULL, lambdaJ=NULL, ...,
 
   if(danger)
     attr(out, "dangerous") <- dangerous
+
+  ## save information about computation
+  attr(out, "bw.used") <- bw.used
+  bw.distance <- InvBWmap(bw.used, denargs$from, denargs$to)
+  attr(out, "bw.distance") <- bw.distance
+  info <- append(info,
+                 list(bw.used=bw.used,
+                      bw.distance=bw.distance))
+  if(adaptive) {
+    attr(out, "bwvalues.used") <- bwvalues.used
+    bwvalues.distance <- InvBWmap(bwvalues.used, denargs$from, denargs$to)
+    attr(out, "bwvalues.distance") <- bwvalues.distance
+    info <- append(info,
+                   list(bwvalues.used=bwvalues.used,
+                        bwvalues.distance=bwvalues.distance))
+  }
+  attr(out, "info") <- info
+  
   return(out)
 }
 

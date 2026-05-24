@@ -94,6 +94,7 @@
 \alias{make.simulrecipe.ppp}
 \alias{make.simulrecipe.pp3}
 \alias{make.simulrecipe.clusterprocess}
+\alias{makebreaksinside}
 \alias{makefvlabel}
 \alias{makeRocDesc}
 \alias{makeRocFlabel}
@@ -152,7 +153,9 @@
 \alias{RelevantDeviation}
 \alias{rename.fv}
 \alias{resolve.2D.kernel}
+\alias{resolve.angular.unit}        
 \alias{resolve.foxall.window}
+\alias{resolve.hist.args}
 \alias{resolve.lambda}
 \alias{resolve.lambda.ppp}
 \alias{resolve.lambdacross}
@@ -160,6 +163,7 @@
 \alias{resolve.pcf.bandwidth}
 \alias{resolve.reciplambda}
 \alias{resolve.reciplambda.ppp}
+\alias{resolve.rose.args}
 \alias{resolveEinfo}
 \alias{resolveNullModel}
 \alias{rhohatEngine}
@@ -208,7 +212,6 @@
 \alias{updateData}
 \alias{updateData.default}
 \alias{validate2Dkernel}
-\alias{validate.angles}        
 \alias{validate.weights}        
 \alias{vanilla.fv}
 \alias{VarOfWtdMean}
@@ -227,7 +230,7 @@
 \method{[}{localpcfmatrix}(x, i, \dots)
 \method{[}{rat}(x, \dots)
 adjust.ratfv(f, columns, numfactor, denfactor)
-ang2rad(ang, unit, start, clockwise)
+ang2rad(ang, unit, fullcircle, start, clockwise)
 \method{as.data.frame}{bw.optim}(x, \dots)
 \method{as.data.frame}{fv}(x, \dots)
 as.roc.data.frame(x, method, covtype, CI, leftoneout)
@@ -254,7 +257,7 @@ calc.TSE(COV, z, pos, Dim1, Dim2)
 censtimeCDFest(o, cc, d, breaks, \dots,
      KM, RS, HAN, RAW, han.denom, tt, pmax, fname, fexpr)
 check.testfun(f, f1, X)
-circticks(R, at, unit, start, clockwise, labels)
+circticks(R, at, unit, fullcircle, start, clockwise, root, labels)
 clarkevansCalc(X, correction, clipregion, working)
 \method{compatible}{rat}(A, B, \dots)
 conform.ratfv(x)
@@ -329,9 +332,9 @@ findcbind(root, depth, maxdepth)
 flatfname(x)
 FormatFaspFormulae(f, argname)
 fvexprmap(x)
-fvlabels(x, expand=FALSE)
+fvlabels(x, expand)
 fvlabels(x) <- value
-fvlabelmap(x, dot=TRUE)
+fvlabelmap(x, dot)
 fvlegend(object, elang)
 g3engine(x, y, z, box, rmax, nrval, correction)
 g3Cengine(x, y, z, box, rmax, nrval)
@@ -363,6 +366,7 @@ make.simulrecipe(object, envir, \dots)
 \method{make.simulrecipe}{ppp}(object, envir, \dots, fix.n, fix.marks)
 \method{make.simulrecipe}{pp3}(object, envir, \dots, fix.n, fix.marks)
 \method{make.simulrecipe}{clusterprocess}(object, envir, \dots, W)
+makebreaksinside(x, r, breaks, nclass)
 makefvlabel(op, accent, fname, sub, argname, pre, post)
 makeRocDesc(desc, leftoneout)
 makeRocFlabel(sub, leftoneout, super, f, argu)
@@ -378,8 +382,8 @@ monotonicRhoFunCalc(x, z, massx, weightz, increasing)
 needROC(\dots)
 nncleanEngine(kthNND, k, d, \dots, tol, maxit,
               plothist, lineargs, verbose, Xname)
-\method{pairs}{listof}(\dots, plot=TRUE)
-\method{pairs}{solist}(\dots, plot=TRUE)
+\method{pairs}{listof}(\dots, plot)
+\method{pairs}{solist}(\dots, plot)
 \method{pcf}{NAobject}(X, \dots)
 pcf3engine(x, y, z, box, rmax, nrval, correction, delta)
 \method{plot}{bw.frac}(x, \dots)
@@ -426,7 +430,9 @@ RelevantDeviation(x, alternative, clamp, scaling)
 rename.fv(x, fname, ylab, yexp)
 resolve.2D.kernel(\dots,
             sigma, varcov, x, mindist, adjust, bwfun, allow.zero)
+resolve.angular.unit(angles, unit, fullcircle, guess, circinfo)
 resolve.foxall.window(X, Y, W, warn.trim)
+resolve.hist.args(x, \dots, freq, probability)
 resolve.lambda(X, lambda, \dots)
 \method{resolve.lambda}{ppp}(X, lambda, \dots,
                sigma, varcov, leaveoneout, update, check)
@@ -434,12 +440,13 @@ resolve.lambdacross(X, I, J, lambdaI, lambdaJ, \dots)
 \method{resolve.lambdacross}{ppp}(X, I, J, lambdaI, lambdaJ, \dots,
          lambdaX, sigma, varcov, leaveoneout, update, lambdaIJ,
          Iexplain, Jexplain, Ilevels, Jlevels)
-resolve.pcf.bandwidth(X, \dots, lambda, rmax, nr, adaptive, kernel,
+resolve.pcf.bandwidth(X, \dots, lambda, npts, rmax, nr, adaptive, kernel,
   bw, h, bw.args, stoyan, adjust, correction, divisor, zerocor, nsmall,
-  gref, close)
+  gref, close, convert.bw)
 resolve.reciplambda(X, lambda, reciplambda, \dots)
 \method{resolve.reciplambda}{ppp}(X, lambda, reciplambda, \dots,
                     sigma, varcov, leaveoneout, update, check)
+resolve.rose.args(unit, fullcircle, start, clockwise, circinfo)
 resolveEinfo(x, what, fallback, warn, atomic)
 resolveNullModel(baseline, X, observations, \dots)
 rhohatEngine(model, covariate, reference, volume, \dots,
@@ -473,8 +480,9 @@ rocIm(X, covariate, \dots, high, p, plength)
 rocSmoothCalc(ZX, ZU,\dots, weightsX, weightsU,
               high, kernel, bw, adjust, alpha, nGrid, p, plength,
               doCI, degfreeU)
-roseContinuous(ang, rad, unit, \dots,
-               start, clockwise, main, labels, at, do.plot)
+roseContinuous(ang, rad, unit, \dots, fullcircle,
+               start, clockwise, root, main, labels, at, shind,
+               add, do.plot, do.circle, do.rings, do.ticks)
 scanmeasure(X, \dots)
 \method{scanmeasure}{ppp}(X, r, \dots, method) 
 \method{scanmeasure}{im}(X, r, \dots)
@@ -487,7 +495,7 @@ second.moment.engine(x, sigma, edge, what, \dots,
       obswin, varcov, npts, debug, fastgauss)
 sewpcf(d, w, denargs, lambda2area, divisor,
        zerocor, fast, convert, adaptive, tau, gref, Transform)
-sewsmod(d, ff, wt, Ef, rvals, method="smrep", \dots, nwtsteps=500)
+sewsmod(d, ff, wt, Ef, rvals, method, \dots, nwtsteps)
 \method{shift}{quadrattest}(X, \dots)
 \method{shift}{tolcon}(X, \dots)
 \method{shift}{tolconlist}(X, \dots)
@@ -515,7 +523,7 @@ spatialCovariateEvidence(model, covariate, \dots)
 \method{spatialCovariateEvidence}{ppp}(model, covariate, \dots, lambdatype,
           dimyx, eps, rule.eps, interpolate, jitter, jitterfactor,
           modelname, covname, dataname, subset, clip.predict, raster.action)
-sphere.volume(range, nval = 10)
+sphere.volume(range, nval)
 \method{summary}{bw.optim}(object, \dots)
 \method{summary}{envelope}(object,\dots)
 tweak.fv.entry(x, current.tag, new.labl, new.desc, new.tag)
@@ -529,7 +537,6 @@ twostage.envelope(X, \dots, nsim, nsimsub, nrank,
 updateData(model, X, \dots)
 \method{updateData}{default}(model, X, \dots, warn)
 validate2Dkernel(kernel, fatal)
-validate.angles(angles, unit, guess)
 validate.weights(x, recip, how, allowzero, allowinf)
 vanilla.fv(x)
 VarOfWtdMean(marx, weights)

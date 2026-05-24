@@ -3,18 +3,19 @@
 #'
 #' Kernel smoothing for circular data
 #'
-#'   $Revision: 1.6 $ $Date: 2023/08/14 06:28:59 $
+#'   $Revision: 1.10 $ $Date: 2026/05/02 04:51:09 $
 
 circdensity <- function(x, sigma="nrd0", ..., bw=NULL,
                         weights=NULL,
-                        unit=c("degree", "radian")) {
+                        unit=c("degree", "radian", "hour", "minute", "other"),
+                        fullcircle=NULL) {
   xname <- short.deparse(substitute(x))
   missu <- missing(unit)
   if(missing(sigma) && !is.null(bw))
     sigma <- bw
   unit <- match.arg(unit)
-  unit <- validate.angles(x, unit, missu)
-  FullCircle <- switch(unit, degree = 360, radian = 2*pi)
+  unit <- resolve.angular.unit(x, unit, fullcircle=fullcircle, guess=missu)
+  fullcircle <- resolve.rose.args(unit, fullcircle)$fullcircle
   if(is.character(sigma)) {
     sigma <- switch(sigma,
                      bcv  = bw.bcv,
@@ -31,20 +32,24 @@ circdensity <- function(x, sigma="nrd0", ..., bw=NULL,
   }
   check.1.real(sigma)
   #' replicate data
-  x <- x %% FullCircle
-  xx <- c(x - FullCircle, x, x + FullCircle)
+  x <- x %% fullcircle
+  xx <- c(x - fullcircle, x, x + fullcircle)
   #' replicate weights
   if(!is.null(weights)) {
     stopifnot(length(weights) == length(x))
     weights <- rep(weights, 3)/3
   }
   #' smooth
-  z <- do.call(density.default,
-               resolve.defaults(list(x=xx, bw=sigma, weights=weights),
+  z <- do.call.matched(density.default,
+                       resolve.defaults(list(x=quote(xx),
+                                             bw=sigma,
+                                             weights=weights),
                                 list(...),
-                                list(from=0, to=FullCircle, warnWbw=FALSE)))
+                                list(from=0, to=fullcircle,
+                                     warnWbw=FALSE, na.rm=TRUE)))
   z$y <- 3 * z$y
   z$data.name <- xname
   z$call <- match.call()
+  attr(z, "circinfo") <- list(unit=unit, fullcircle=fullcircle)
   return(z)
 }

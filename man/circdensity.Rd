@@ -10,7 +10,9 @@
 \usage{
 circdensity(x, sigma = "nrd0", \dots,
                bw = NULL,
-               weights=NULL, unit = c("degree", "radian"))
+               weights=NULL,
+               unit = c("degree", "radian", "hour", "minute", "other"),
+               fullcircle=NULL)
 }
 \arguments{
   \item{x}{
@@ -31,16 +33,26 @@ circdensity(x, sigma = "nrd0", \dots,
   }
   \item{unit}{
     The unit of angle in which \code{x} is expressed.
+    Character string (partially matched).
+  }
+  \item{fullcircle}{
+    The period (the value of \code{x} that corresponds to one full circle)
+    if \code{unit="other"}.
   }
 }
 \details{
   The angular values \code{x} are smoothed using
-  (by default) the wrapped Gaussian kernel with standard deviation \code{sigma}.
+  (by default) the wrapped Gaussian kernel with standard deviation
+  \code{sigma}.
 }
 \value{
   An object of class \code{"density"} (produced by
   \code{\link[stats]{density.default}}) which can be plotted
-  by \code{plot} or by \code{\link{rose}}.
+  by \code{plot} or by \code{\link{rose.density}}.
+
+  The result also contains information about the arguments
+  \code{unit} and \code{fullcircle} which can be used by
+  \code{\link{rose.density}}.
 }
 \author{
   \spatstatAuthors.

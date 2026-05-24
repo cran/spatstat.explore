@@ -5,16 +5,17 @@
 #'
 #' Copyright (c) 2008-2025 Adrian Baddeley, Tilman Davies and Martin Hazelton
 #'
-#' $Revision: 1.36 $ $Date: 2026/02/14 10:43:24 $
+#' $Revision: 1.40 $ $Date: 2026/05/22 02:08:21 $
 
 pcfinhom <- function(X, lambda=NULL, ..., r=NULL, rmax=NULL, 
                      adaptive=FALSE,
                      kernel="epanechnikov", bw=NULL, h=NULL,
                      bw.args=list(),
                      stoyan=0.15,
+                     adjust.bw = adjust,
                      adjust = 1,
                      correction=c("translate", "Ripley"),
-                     divisor=c("a", "r", "d", "t"),
+                     divisor=c("r", "d", "a", "t"),
                      zerocor=c("convolution", "reflection", "bdrykern",
                                "JonesFoster", "weighted", "none",
                                "good", "best"),
@@ -28,7 +29,8 @@ pcfinhom <- function(X, lambda=NULL, ..., r=NULL, rmax=NULL,
                      fast=TRUE,
                      var.approx=FALSE,
                      domain=NULL, ratio=FALSE,
-                     close=NULL)
+                     close=NULL,
+                     convert.bw=TRUE)
 {
   verifyclass(X, "ppp")
   if(is.NAobject(X)) return(NAobject("fv"))
@@ -45,13 +47,13 @@ pcfinhom <- function(X, lambda=NULL, ..., r=NULL, rmax=NULL,
   if(!divisor.given || !zerocor.given) 
     warn.once("pcfinhomDefaults",
               paste("Default settings for pcfinhom",
-                    "have changed in spatstat.explore 3.7-0.007"))
+                    "have changed in spatstat.explore 3.8-1"))
 
   if(divisor.given) {
     if(is.function(divisor)) divisor <- divisor(X)
     divisor <- match.arg(divisor)
   } else {
-    divisor <- "a"
+    divisor <- "r"
   }
 
   if(zerocor.given) {
@@ -64,7 +66,8 @@ pcfinhom <- function(X, lambda=NULL, ..., r=NULL, rmax=NULL,
     zerocor <- if(npts <= nsmall) "JonesFoster" else "convolution"
   }
 
-  check.1.real(adjust)
+  check.1.real(adjust.bw)
+  check.1.real(adjust.sigma)
 
   ## ..................................................
   ## ....... INTENSITY VALUES .........................
@@ -173,24 +176,28 @@ pcfinhom <- function(X, lambda=NULL, ..., r=NULL, rmax=NULL,
   
   M <- resolve.pcf.bandwidth(X,
                              lambda=lambdaBar, ## NB
+                             npts = npts,
                              rmax=rmax, nr=length(r),
                              adaptive=adaptive, kernel=kernel,
                              bw=bw, h=h, bw.args=bw.args,
-                             stoyan=stoyan, adjust=adjust,
+                             stoyan=stoyan, adjust=adjust.bw,
                              correction=correction,
                              divisor=divisor,
                              zerocor=zerocor,
                              nsmall=nsmall,
                              gref=gref,
-                             close=close)
+                             close=close,
+                             convert.bw=convert.bw)
 
   info    <- M$info
   denargs <- M$denargs
 
-  Transform <- info$Transform
   dmax      <- info$dmax
   gref      <- info$gref
-
+  Transform <- info$Transform
+  InvTran   <- info$InvTran
+  BWmap     <- info$BWmap 
+  InvBWmap  <- info$InvBWmap
   
   #######################################################
   ## compute pairwise distances up to 'dmax'
@@ -290,7 +297,8 @@ pcfinhom <- function(X, lambda=NULL, ..., r=NULL, rmax=NULL,
     # Ripley isotropic correction
     if(npairs > 0) {
       XI <- ppp(close$xi, close$yi, window=win, check=FALSE)
-      edgewt <- edge.Ripley(XI, matrix(dIJ, ncol=1))
+      bXI <- bdist.points(X)[close$i]
+      edgewt <- edge.Ripley(XI, matrix(dIJ, ncol=1), bdistX=bXI)
       kdenR <- sewpcf(d=dIJ, w=edgewt * wIJ,
                       denargs=denargs,
                       lambda2area=areaW,
@@ -350,11 +358,19 @@ pcfinhom <- function(X, lambda=NULL, ..., r=NULL, rmax=NULL,
     out <- conform.ratfv(out)
 
   ## save information about computation
-  attr(out, "bw") <- bw.used
-  info <- append(info, list(bw.used=bw.used))
+  attr(out, "bw.used") <- bw.used
+  bw.distance <- InvBWmap(bw.used, denargs$from, denargs$to)
+  attr(out, "bw.distance") <- bw.distance
+  info <- append(info,
+                 list(bw.used=bw.used,
+                      bw.distance=bw.distance))
   if(adaptive) {
-    attr(out, "bwvalues") <- bwvalues.used
-    info <- append(info, list(bwvalues.used=bwvalues.used))
+    attr(out, "bwvalues.used") <- bwvalues.used
+    bwvalues.distance <- InvBWmap(bwvalues.used, denargs$from, denargs$to)
+    attr(out, "bwvalues.distance") <- bwvalues.distance
+    info <- append(info,
+                   list(bwvalues.used=bwvalues.used,
+                        bwvalues.distance=bwvalues.distance))
   }
   attr(out, "info") <- info
   return(out)

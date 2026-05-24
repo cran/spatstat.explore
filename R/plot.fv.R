@@ -1,7 +1,7 @@
 #
 #       plot.fv.R   (was: conspire.S)
 #
-#  $Revision: 1.146 $    $Date: 2025/12/26 02:55:58 $
+#  $Revision: 1.149 $    $Date: 2026/05/02 09:14:10 $
 #
 #
 
@@ -57,7 +57,7 @@ plot.fv <- local({
                       shade=fvnames(x, ".s"), shadecol="grey", add=FALSE,
                       log="",
                       mathfont=c("italic", "plain", "bold", "bolditalic"), 
-                      limitsonly=FALSE, do.plot=TRUE) {
+                      limitsonly=FALSE, do.plot=TRUE, spill=FALSE) {
 
     xname <-
       if(is.language(substitute(x))) short.deparse(substitute(x)) else ""
@@ -324,6 +324,16 @@ plot.fv <- local({
     ## return x, y limits only?
     if(limitsonly)
       return(list(xlim=xlim, ylim=ylim))
+
+    ## spill the beans?
+    if(isTRUE(spill)) {
+      result <- list(rhsdata = rhsdata,
+                     lhsdata = lhsdata,
+                     xlim    = xlim,
+                     ylim    = ylim,
+                     shind   = if(!is.null(shade)) shind else integer(0))
+      return(result)
+    }
 
     ## -------------  work out how to label the plot --------------------
 
@@ -717,9 +727,8 @@ findbestlegendpos <- local({
     scaled.objects <- lapply(scaled.objects, rebound, rect=scaledW)
     ## pixellate the scaled objects
     pix.scal.objects <- lapply(scaled.objects, asma)
-    ## handle very tiny or thin objects
-    if(any(tiny <- sapply(pix.scal.objects, is.empty))) 
-      pix.scal.objects[tiny] <- lapply(scaled.objects[tiny], distmap)
+    nonempty <- !sapply(pix.scal.objects, is.empty)
+    pix.scal.objects <- pix.scal.objects[nonempty]
     ## apply distance transforms in scaled space
     D1 <- distmap(pix.scal.objects[[1]])
     Dlist <- lapply(pix.scal.objects, distmap, xy=list(x=D1$xcol, y=D1$yrow))
@@ -801,9 +810,19 @@ findbestlegendpos <- local({
     return(out)
   }
 
-  asma <- function(z) { if(is.owin(z)) as.mask(z) else
-                        if(is.psp(z)) psp2mask(z) else NULL }
-  
+  asma <- function(z) {
+    ## convert object z to a (rough-and-ready) mask
+    m <- if(is.owin(z)) as.mask(z) else
+         if(is.psp(z)) psp2mask(z) else NULL
+    if(!is.null(m) && is.empty(m)) {
+      ## z is a very thin/small object
+      d <- distmap(z)
+      p <- sqrt(d$xstep^2 + d$ystep^2)
+      m <- solutionset(d < 1.5 * p)
+    }
+    return(m)
+  }
+      
   callit <- function(...) {
     rslt <- try(bestlegendpos(...))
     if(!inherits(rslt, "try-error"))
