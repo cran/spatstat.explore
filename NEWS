@@ -1,4 +1,43 @@
 
+        CHANGES IN spatstat.explore VERSION 3.8-2
+
+OVERVIEW
+
+    o We thank Lindsay Clark for contributions.
+
+    o Adaptive kernel smoothing of mark values.
+    
+    o Minor improvements and bug fixes.
+
+NEW FUNCTIONS
+
+    o SmoothAdaptiveKernel.ppp
+    Adaptive kernel smoothing of mark values of a point pattern.
+    
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o rhohat.ppp, rhohat.quad
+    Methods for 'rhohat' now recognise the argument 'delta'
+    as an alternative to argument 'breaks' when smoother="piecewise".
+    
+    o pcfcross.inhom, pcfdot.inhom, pcfmulti.inhom
+    Now recognise argument 'ratio'.
+    If 'ratio=TRUE', the numerator and denominator of each estimate
+    are saved, for use in analysing replicated point patterns.
+
+    o Kcross.inhom, Kdot.inhom, Kmulti.inhom, Lcross.inhom, Ldot.inhom
+    Now recognise argument 'ratio'.
+    If 'ratio=TRUE', the numerator and denominator of each estimate
+    are saved, for use in analysing replicated point patterns.
+
+BUG FIXES
+
+    o pcfinhom
+    The result was incorrectly labelled (in the internal function labels)
+    as if it were the result of 'pcf' rather than 'pcfinhom'.
+    Fixed.
+
+
         CHANGES IN spatstat.explore VERSION 3.8-1
 
 OVERVIEW

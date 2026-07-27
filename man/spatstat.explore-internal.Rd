@@ -43,7 +43,6 @@
 \alias{dimnames.fasp}               
 \alias{dimnames<-.fasp}
 \alias{distributecbind}
-\alias{ensure.listarg}
 \alias{envelopeEngine}
 \alias{envelopeProgressData}
 \alias{envelopeTest}
@@ -284,7 +283,6 @@ digital.volume(range, nval, vside)
 \method{dimnames}{fasp}(x)
 \method{dimnames}{fasp}(x) <- value
 distributecbind(x)
-ensure.listarg(x, n, singletypes, xtitle, things)
 envelopeEngine(X, fun, simul,
            nsim, nrank, \dots, funargs, funYargs,
            verbose, clipdata, 
@@ -454,13 +452,13 @@ rhohatEngine(model, covariate, reference, volume, \dots,
                resolution, spatCovarArgs,
                n, bw, adjust, from, to, 
                bwref, covname, covunits, confidence,
-               breaks,
+               breaks, delta,
                modelcall, callstring)
 rhohatCalc(ZX, Zvalues, lambda, denom, \dots,
            weights, lambdaX,
            method, horvitz, smoother, do.CI, 
            n, bw, adjust, from, to, 
-           bwref, covname, confidence, breaks, positiveCI, markovCI,
+           bwref, covname, confidence, breaks, delta, positiveCI, markovCI,
            covunits, modelcall, callstring, savestuff)
 rmax.Rigid(X, g)
 rmax.rule(fun, W, lambda)
