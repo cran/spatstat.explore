@@ -1,22 +1,30 @@
 \name{transect.im}
+\alias{transect}
 \alias{transect.im}
+\alias{transect.funxy}
 \title{
   Pixel Values Along a Transect
 }
 \description{
-  Extract the pixel values of a pixel image at each point along
-  a linear transect.
+  Extract the pixel values of a pixel image (or function values of
+  a spatial function) at each point along a linear transect.
 }
 \usage{
-transect.im(X, ..., from="bottomleft", to="topright",
+transect(X, \dots)
+
+\method{transect}{im}(X, \dots, from="bottomleft", to="topright",
+            nsample=512, click=FALSE, add=FALSE, curve=NULL)
+
+\method{transect}{funxy}(X, \dots, from="bottomleft", to="topright",
             nsample=512, click=FALSE, add=FALSE, curve=NULL)
 }
 \arguments{
   \item{X}{
-    A pixel image (object of class \code{"im"}).
+    A pixel image (object of class \code{"im"})
+    or a spatial function (object of class \code{"funxy"}).
   }
   \item{\dots}{
-    Ignored.
+    Additional arguments are ignored.
   }
   \item{from,to}{
     Optional. Start point and end point of the transect.
@@ -45,9 +53,13 @@ transect.im(X, ..., from="bottomleft", to="topright",
   }
 }
 \details{
-  The pixel values of the image \code{X} along a line segment 
+  The pixel values (or function values) of \code{X} along a line segment 
   will be extracted. The result is a function table (\code{"fv"} object)
   which can be plotted directly.
+
+  The function \code{transect} is generic, with methods for pixel images
+  (class \code{"im"}) and functions of spatial location (class
+  \code{"funxy"}) and other classes.
 
   If \code{click=TRUE}, then the user is prompted to click two points on
   the plot of \code{X}. These endpoints define the transect.
@@ -76,17 +88,38 @@ transect.im(X, ..., from="bottomleft", to="topright",
 }
 \value{
   An object of class \code{"fv"} which can be plotted.
+  
+  The return value has an attribute \code{"SamplePoints"} which is
+  a point pattern (class \code{"ppp"}) representing the
+  sequence of sample points at which the values of \code{X} were obtained.
 }
 \author{
   \adrian
   and \rolf
 }
 \seealso{
-  \code{\link[spatstat.geom]{im}}
+  \code{\link[spatstat.geom]{im}},
+  \code{\link[spatstat.geom]{funxy}}
 }
 \examples{
+  opa <- par(mfrow=c(1,2))
+
+  ## pixel image
   Z <- bei.extra$elev
-  plot(transect.im(Z))
+  plot(Z)
+  plot(transect(Z))
+
+  ## function
+  U <- distfun(cells)
+  plot(U)
+  TU <- transect(U, from="left", to="right")
+  ## show the transect position on the plot of U
+  SP <- attr(TU, "SamplePoints")
+  with(SP, lines(x,y,col=8, lwd=3))
+  ## plot the transect values
+  plot(TU, main="transect(U, ...)")
+
+  par(opa)
 }
 \keyword{spatial}
 \keyword{manip}

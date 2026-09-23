@@ -1,4 +1,50 @@
 
+        CHANGES IN spatstat.explore VERSION 3.8-3
+
+OVERVIEW
+
+    o Adaptive kernel estimation of relative risk.
+    
+    o Transect of a spatial function.
+
+    o relrisk.ppp handles multiple columns of marks.
+
+    o Minor improvements and bug fixes.
+
+NEW FUNCTIONS
+
+    o relriskAdaptiveKernel
+    New generic.
+
+    o relriskAdaptiveKernel.ppp
+    Variable-bandwidth kernel estimation of spatial relative risk
+    or spatially-varying probability.
+
+    o transect
+    New generic
+
+    o transect.funxy
+    Linear transect for a spatial function (object of class 'funxy').
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o densityVoronoi.ppp
+    Behaviour improved in cases where f is extremely close to 0 or 1.
+
+    o relrisk.ppp
+    Now handles a point pattern with multiple columns of marks.
+    
+    o transect.im
+    This function is now a method for the new generic 'transect'.
+
+BUG FIXES
+
+    o densityVoronoi.ppp
+    Result was incorrect if the randomly-selected subsample of the point pattern
+    consisted of exactly one point. This occurred only when the argument 'f'
+    was very small.
+    Fixed.
+
         CHANGES IN spatstat.explore VERSION 3.8-2
 
 OVERVIEW
